@@ -1,0 +1,36 @@
+# Add executable
+set(ECHO_PROJECT_NAME "TestProject")
+
+add_executable(${ECHO_PROJECT_NAME})
+
+message(STATUS "Shader directory: ${CMAKE_CURRENT_LIST_DIR}/Shaders/")
+
+# Ensure the output directory exists
+set(BUILD_DIRECTORY "${CMAKE_BINARY_DIR}")  # Ensure BUILD_DIRECTORY is set correctly
+file(MAKE_DIRECTORY "${BUILD_DIRECTORY}/Projects/${ECHO_PROJECT_NAME}/Shaders")
+
+# Find all files in the shader folder
+file(GLOB SHADER_FILES "${CMAKE_CURRENT_LIST_DIR}/Shaders/*.spv")
+
+# Iterate over each shader file and print its name
+foreach(SHADER_FILE ${SHADER_FILES})
+    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
+    message(STATUS "Copy shader file: ${SHADER_NAME}")
+    file(COPY ${SHADER_FILE} DESTINATION "${BUILD_DIRECTORY}/Projects/${ECHO_PROJECT_NAME}/Shaders")
+endforeach()
+
+# Sources
+file(GLOB SOURCES_PRIVATE "${CMAKE_CURRENT_LIST_DIR}/Source/*.cpp")
+file(GLOB HEADERS_PUBLIC "${CMAKE_CURRENT_LIST_DIR}/Source/*.h")
+
+# Add sources to target
+target_sources(${ECHO_PROJECT_NAME} PRIVATE ${SOURCES_PRIVATE})
+target_sources(${ECHO_PROJECT_NAME} PUBLIC ${HEADERS_PUBLIC})
+
+# Link libraries
+target_link_libraries(${ECHO_PROJECT_NAME} PUBLIC Engine)
+
+# Ensure we are building a console application, not a Windows GUI application
+if (MSVC)
+    set_target_properties(${ECHO_PROJECT_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+endif()
