@@ -24,6 +24,7 @@ VkGraphics::VkGraphics(int width, int height, GLFWwindow *window)
 	CreateSurface(window);
 	CreateDevice();
 	CreateSwapchain();
+	CreateGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv");
 	FinalizeSetup();
 } 
 
@@ -61,9 +62,16 @@ void VkGraphics::CreateSwapchain()
 	swapchainFrames = swapchainBundle.frames;
 }
 
-void VkGraphics::CreatePipeline()
+void VkGraphics::CreateGraphicsPipeline(const std::string& vertexFilepath, const std::string& fragmentFilepath)
 {
+	VkUtil::GraphicsPipelineInBundle input;
+	input.device = device;
+	input.vertexFilepath = vertexFilepath;
+	input.fragmentFilepath = fragmentFilepath;
+	input.swapchainExtent = swapchainExtent;
+	input.swapchainImageFormat = swapchainFormat;
 
+	VkUtil::GraphicsPipelineOutBundle graphisBundle = VkUtil::CreateGraphicsPipeline(input);
 
 }
 

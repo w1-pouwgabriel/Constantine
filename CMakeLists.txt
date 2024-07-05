@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.28)
 
-set(PROJECT_NAME "Echo")
+set(PROJECT_NAME "Constantine")
 
 project(${PROJECT_NAME})
 
 #Define the project that you want to launch
 #  The name must be the same as the folder its placed in
-set(ECHO_PROJECT_NAME "TestProject")
+set(CONTSTANTINE_PROJECT_NAME "TestProject")
 
 # Use C++ 17 as a standard
 set(CMAKE_CXX_STANDARD 17)
@@ -16,9 +16,9 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Add a macro for debugging
 # All current compile options: Debug, Release, RelWithDebInfo, and MinSizeRel
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	add_compile_definitions(ENABLE_VALIDATION_LAYER=1)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	add_compile_definitions(ENABLE_VALIDATION_LAYER=0)
 endif()
 

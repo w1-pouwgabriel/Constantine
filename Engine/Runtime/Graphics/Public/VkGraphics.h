@@ -39,12 +39,11 @@ private:
 	VkFormat swapchainFormat;
 	VkExtent2D swapchainExtent;
 	void CreateSwapchain();
-
-	//Pipeline
-	//vk::PipelineLayout layout;
-	//vk::RenderPass renderpass;
-	//vk::Pipeline pipeline;
-	void CreatePipeline();
+	//	Pipeline
+	VkPipelineLayout layout;
+	VkRenderPass renderpass;
+	VkPipeline pipeline;
+	void CreateGraphicsPipeline(const std::string& vertexFilepath, const std::string& fragmentFilepath);
 	void CleanupSwapchain();
 
 	//Command-related variables

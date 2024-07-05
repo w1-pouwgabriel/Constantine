@@ -1,22 +1,6 @@
 # Add library
 add_library(Graphics STATIC)
 
-message(STATUS "Shader directory: ${CMAKE_CURRENT_LIST_DIR}/Shaders/")
-
-# Ensure the output directory exists
-set(BUILD_DIRECTORY "${CMAKE_BINARY_DIR}")  # Ensure BUILD_DIRECTORY is set correctly
-file(MAKE_DIRECTORY "${BUILD_DIRECTORY}/Projects/${ECHO_PROJECT_NAME}/Shaders")
-
-# Find all files in the shader folder
-file(GLOB SHADER_FILES "${CMAKE_CURRENT_LIST_DIR}/Shaders/*.spv")
-
-# Iterate over each shader file and print its name
-foreach(SHADER_FILE ${SHADER_FILES})
-    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
-    message(STATUS "Copy shader file: ${SHADER_NAME}")
-    file(COPY ${SHADER_FILE} DESTINATION "${BUILD_DIRECTORY}/Projects/${ECHO_PROJECT_NAME}/Shaders")
-endforeach()
-
 # Sources
 file(GLOB GRAPHICS_PRIVATE_SOURCES ${SOURCE_RUNTIME_DIRECTORY}/Graphics/Private/*.cpp)
 file(GLOB GRAPHICS_PUBLIC_HEADERS ${SOURCE_RUNTIME_DIRECTORY}/Graphics/Public/*.h)

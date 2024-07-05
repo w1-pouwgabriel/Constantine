@@ -1,8 +1,5 @@
 #version 450
 
-// vulkan NDC:	x: -1(left), 1(right)
-//				y: -1(top), 1(bottom)
-
 layout(location = 0) out vec3 fragColor;
 
 vec2 positions[3] = vec2[](

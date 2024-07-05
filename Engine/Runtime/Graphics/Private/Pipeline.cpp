@@ -34,14 +34,14 @@ namespace VkUtil
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = (float)swapchainExtent.width;
-        viewport.height = (float)swapchainExtent.height;
+        viewport.width = (float)specification.swapchainExtent.width;
+        viewport.height = (float)specification.swapchainExtent.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = swapChainExtent;
+        scissor.extent = specification.swapchainExtent;
 
         VkPipelineViewportStateCreateInfo viewportState{};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -53,6 +53,7 @@ namespace VkUtil
 
         vkDestroyShaderModule(specification.device, fragShaderModule, nullptr);
         vkDestroyShaderModule(specification.device, vertShaderModule, nullptr);
+        
         return GraphicsPipelineOutBundle();
     }
 

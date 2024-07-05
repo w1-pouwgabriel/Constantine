@@ -8,10 +8,6 @@ int main()
     Engine* vroem = new Engine();
     vroem->Run();
 
-    //Gameplay code
-    // .....
-    //      SPAGHETTI CODE 
-    //                     .......
     printf("    DOEI!!!!    \n");
     
     delete vroem;
