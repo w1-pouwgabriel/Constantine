@@ -72,11 +72,15 @@ void VkGraphics::CreateGraphicsPipeline(const std::string& vertexFilepath, const
 	input.swapchainImageFormat = swapchainFormat;
 
 	VkUtil::GraphicsPipelineOutBundle graphisBundle = VkUtil::CreateGraphicsPipeline(input);
-
+	renderPass = graphisBundle.renderPass;
+	layout = graphisBundle.layout;
+	pipeline = graphisBundle.pipeline;
 }
 
 void VkGraphics::RecreateSwapchain()
 {
+	Cleanup();
+
 	
 }
 
@@ -112,6 +116,10 @@ void VkGraphics::Render(Scene& scene)
 
 void VkGraphics::Cleanup()
 {
+	vkDestroyPipeline(device, pipeline, nullptr);
+	vkDestroyPipelineLayout(device, layout, nullptr);
+	vkDestroyRenderPass(device, renderPass, nullptr);
+
     for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
 		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);

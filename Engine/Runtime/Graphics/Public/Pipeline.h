@@ -20,7 +20,7 @@ namespace VkUtil
 
 	struct GraphicsPipelineOutBundle {
 		VkPipelineLayout layout;
-		VkRenderPass renderpass;
+		VkRenderPass renderPass;
 		VkPipeline pipeline;
 	};
 

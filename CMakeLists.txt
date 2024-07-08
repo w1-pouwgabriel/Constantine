@@ -14,15 +14,15 @@ set(CMAKE_CXX_STANDARD 17)
 # Enable folder structure in the IDE
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Add a macro for debugging
-# All current compile options: Debug, Release, RelWithDebInfo, and MinSizeRel
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	add_compile_definitions(ENABLE_VALIDATION_LAYER=1)
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	add_compile_definitions(ENABLE_VALIDATION_LAYER=0)
-endif()
-
 if(MSVC)
+	# Add a macro for debugging
+	# All current compile options: Debug, Release, RelWithDebInfo, and MinSizeRel
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	add_compile_definitions(ENABLE_VALIDATION_LAYER=1)
+	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	add_compile_definitions(ENABLE_VALIDATION_LAYER=0)
+	endif()
+
 	# Remove the always defined _WINDOWS flag
 	# CPP
 	string (REPLACE "/D_WINDOWS" "" CMAKE_CUSTOM_CPP_FLAGS ${CMAKE_CXX_FLAGS})
@@ -32,6 +32,12 @@ if(MSVC)
 	string (REPLACE "/D_WINDOWS" "" CMAKE_CUSTOM_C_FLAGS ${CMAKE_C_FLAGS})
 	string (REPLACE "/DWIN32" "" CMAKE_CUSTOM_C_FLAGS ${CMAKE_CUSTOM_C_FLAGS})
 	SET(CMAKE_C_FLAGS "${CMAKE_CUSTOM_C_FLAGS}" CACHE STRING "" FORCE)
+else()
+	if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	add_compile_definitions(ENABLE_VALIDATION_LAYER=1)
+	elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	add_compile_definitions(ENABLE_VALIDATION_LAYER=0)
+	endif()
 endif()
 
 # Debug postfix
