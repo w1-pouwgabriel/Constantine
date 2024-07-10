@@ -47,15 +47,10 @@ private:
 	void CleanupSwapchain();
 
 	//Command-related variables
-	//vk::CommandPool commandPool;
-	//vk::CommandBuffer mainCommandBuffer;
+	VkCommandPool commandPool;
+	VkCommandBuffer mainCommandBuffer;
+	int maxFramesInFlight, frameNumber = 0;
 	void CreateFramebuffers();
-
-	//Synchronization objects
-	int maxFramesInFlight, frameNumber;
-	void CreateSyncObjects();
-
-	void FinalizeSetup();
 
 	//Draw command buffers
 	void DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageIndex, Scene& scene);

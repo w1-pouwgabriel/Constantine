@@ -22,5 +22,10 @@ namespace VkInit
 
     SwapChainBundle CreateSwapchainKHR(const VkPhysicalDevice &physicalDevice, const VkDevice &device, const VkSurfaceKHR &surface, GLFWwindow *window);
 
-    void AddSwapchainBundleFrames(const VkDevice &device, SwapChainBundle& swapchainBundle);
+    void AddSwapchainBundleFrames(
+        const VkDevice &device, 
+        SwapChainBundle& swapchainBundle, 
+        const VkRenderPass& renderPass, 
+        const VkCommandPool& commandPool
+        );
 }
