@@ -12,7 +12,6 @@ public:
 
 	void Render(Scene& scene);
 	void RecreateSwapchain();
-	void Cleanup();
 
 private:
 	//GLFW
@@ -39,18 +38,22 @@ private:
 	VkFormat swapchainFormat;
 	VkExtent2D swapchainExtent;
 	void CreateSwapchain();
+	void CleanupSwapchain();
+	void CreateFramebuffers();
+	
 	//	Pipeline
 	VkPipelineLayout layout;
 	VkRenderPass renderPass;
 	VkPipeline pipeline;
 	void CreateGraphicsPipeline(const std::string& vertexFilepath, const std::string& fragmentFilepath);
-	void CleanupSwapchain();
-
-	//Command-related variables
+	//	Command-related variables
 	VkCommandPool commandPool;
 	VkCommandBuffer mainCommandBuffer;
 	int maxFramesInFlight, frameNumber = 0;
-	void CreateFramebuffers();
+	void CreatCommandPool();
+	void CreateSyncObjects();
+
+	void FinalizeSetup();
 
 	//Draw command buffers
 	void DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageIndex, Scene& scene);

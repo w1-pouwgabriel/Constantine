@@ -29,7 +29,7 @@ namespace VkInit
         bool extensionsSupported = checkDeviceExtensionSupport(device);
         bool swapChainAdequate = false;
         if (extensionsSupported) {
-            SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(device, surface);
+            VkUtil::SwapChainSupportDetails swapChainSupport = VkUtil::QuerySwapChainSupport(device, surface);
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 

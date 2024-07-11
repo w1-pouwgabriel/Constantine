@@ -7,6 +7,8 @@
 #include "Pipeline.h"
 #include "Scene.h"
 #include "Command.h"
+#include "Sync.h"
+#include "Frame.h"
 
 #include <glm/ext/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale
 
@@ -26,7 +28,9 @@ VkGraphics::VkGraphics(int width, int height, GLFWwindow *window)
 	CreateDevice();
 	CreateSwapchain();
 	CreateGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv");
+	CreatCommandPool();
 	CreateFramebuffers();
+	FinalizeSetup();
 } 
 
 void VkGraphics::CreateInstance()
@@ -54,7 +58,7 @@ void VkGraphics::CreateDevice()
 
 void VkGraphics::CreateSwapchain()
 {
-	VkInit::SwapChainBundle swapchainBundle = VkInit::CreateSwapchainKHR(physicalDevice, device, surface, window);
+	VkUtil::SwapChainBundle swapchainBundle = VkUtil::CreateSwapchainKHR(physicalDevice, device, surface, window);
 	swapchain = swapchainBundle.swapchain;
 	swapchainExtent = swapchainBundle.extent;
 	swapchainFormat = swapchainBundle.format;
@@ -75,18 +79,7 @@ void VkGraphics::CreateGraphicsPipeline(const std::string& vertexFilepath, const
 	pipeline = graphisBundle.pipeline;
 }
 
-void VkGraphics::RecreateSwapchain()
-{	
-	vkDeviceWaitIdle(device);
-
-    Cleanup();
-
-    CreateSwapchain();
-    CreateGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv");
-    CreateFramebuffers();
-}
-
-void VkGraphics::CreateFramebuffers() 
+void VkGraphics::CreatCommandPool()
 {
 	VkUtil::QueueFamilyIndices queueFamilyIndices = VkUtil::findQueueFamilies(physicalDevice, surface);
 	VkCommandPoolCreateInfo poolInfo{};
@@ -97,19 +90,32 @@ void VkGraphics::CreateFramebuffers()
 	if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create command pool!");
 	}
+}
 
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = commandPool;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = 1;
-
-	if (vkAllocateCommandBuffers(device, &allocInfo, &mainCommandBuffer) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate command buffers!");
+void VkGraphics::FinalizeSetup()
+{
+	for (size_t i = 0; i < swapchainFrames.size(); i++)
+	{
+		auto& frame = swapchainFrames[i];
+		VkInit::AddCommandBuffer(device, commandPool, frame);
+		VkInit::AddSyncObjects(device, frame);
 	}
+}
 
-	VkInit::SwapChainBundle swapchainBundle = {swapchain, swapchainFrames, swapchainFormat, swapchainExtent};
-	VkInit::AddSwapchainBundleFrames(device, swapchainBundle, renderPass, commandPool);
+void VkGraphics::CreateFramebuffers()
+{
+	// VkCommandBufferAllocateInfo allocInfo{};
+	// allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	// allocInfo.commandPool = commandPool;
+	// allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	// allocInfo.commandBufferCount = 1;
+
+	// if (vkAllocateCommandBuffers(device, &allocInfo, &mainCommandBuffer) != VK_SUCCESS) {
+	// 	throw std::runtime_error("failed to allocate command buffers!");
+	// }
+
+	VkUtil::SwapChainBundle swapchainBundle = {swapchain, swapchainFrames, swapchainFormat, swapchainExtent};
+	VkUtil::InitImageAndFrameData(device, swapchainBundle, renderPass, commandPool);
 	swapchainFrames = swapchainBundle.frames;
 	maxFramesInFlight = swapchainBundle.imageCount - 1;
 	frameNumber = 0;
@@ -162,6 +168,28 @@ void VkGraphics::DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageI
 	}
 }
 
+void VkGraphics::RecreateSwapchain()
+{	
+	vkDeviceWaitIdle(device);
+
+    CleanupSwapchain();
+
+	CreateSwapchain();
+	CreateFramebuffers();
+}
+
+void VkGraphics::CleanupSwapchain()
+{
+	for (size_t i = 0; i < swapchainFrames.size(); i++)
+	{
+		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
+		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
+		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
+		swapchainFrames[i].imageView = VK_NULL_HANDLE;
+	}
+	vkDestroySwapchainKHR(device, swapchain, nullptr);
+}
+
 void VkGraphics::Render(Scene& scene)
 {
 	auto& frame = swapchainFrames[frameNumber];
@@ -170,7 +198,14 @@ void VkGraphics::Render(Scene& scene)
 	vkResetFences(device, 1, &frame.inFlight);
 	
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, frame.imageAvailable, VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, frame.imageAvailable, VK_NULL_HANDLE, &imageIndex);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		RecreateSwapchain();
+		return;
+	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
 
 	vkResetCommandBuffer(frame.commandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 	DrawCommandbuffer(frame.commandBuffer, imageIndex, scene);
@@ -210,7 +245,7 @@ void VkGraphics::Render(Scene& scene)
 	frameNumber = (frameNumber + 1) % maxFramesInFlight;
 }
 
-void VkGraphics::Cleanup()
+VkGraphics::~VkGraphics()
 {
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	vkDestroyPipeline(device, pipeline, nullptr);
@@ -219,26 +254,21 @@ void VkGraphics::Cleanup()
 
     for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
+		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
+		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
+		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
+		swapchainFrames[i].imageView = VK_NULL_HANDLE;
 		vkDestroySemaphore(device, swapchainFrames[i].imageAvailable, nullptr);
 		swapchainFrames[i].imageAvailable = VK_NULL_HANDLE;
 		vkDestroySemaphore(device, swapchainFrames[i].renderFinished, nullptr);
 		swapchainFrames[i].renderFinished = VK_NULL_HANDLE;
 		vkDestroyFence(device, swapchainFrames[i].inFlight, nullptr);
 		swapchainFrames[i].inFlight = VK_NULL_HANDLE;
-		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
-		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
-		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
-		swapchainFrames[i].imageView = VK_NULL_HANDLE;
 	}
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
-}
-
-VkGraphics::~VkGraphics()
-{
-	Cleanup();
-
 	vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
+
 	#ifdef ENABLE_VALIDATION_LAYER
 		VkUtil::DetachDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	#endif

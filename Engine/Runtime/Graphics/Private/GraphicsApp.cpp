@@ -63,7 +63,11 @@ void GraphicsApp::Run(Scene& scene)
 {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-		graphics->Render(scene);
-		CalculateFrameRate();
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+		if(width > 0 && height > 0){
+			graphics->Render(scene);
+			CalculateFrameRate();
+		}
 	}
 }

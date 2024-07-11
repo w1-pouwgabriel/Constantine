@@ -2,7 +2,7 @@
 #include "Utils.h"
 #include "Frame.h"
  
-namespace VkInit
+namespace VkUtil
 {
     struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
@@ -10,22 +10,9 @@ namespace VkInit
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-	struct SwapChainBundle {
-		VkSwapchainKHR swapchain;
-		std::vector<VkUtil::SwapChainFrame> frames;
-		VkFormat format;
-		VkExtent2D extent;
-		uint32_t imageCount;
-	};
-
     SwapChainSupportDetails QuerySwapChainSupport(const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface);
 
     SwapChainBundle CreateSwapchainKHR(const VkPhysicalDevice &physicalDevice, const VkDevice &device, const VkSurfaceKHR &surface, GLFWwindow *window);
 
-    void AddSwapchainBundleFrames(
-        const VkDevice &device, 
-        SwapChainBundle& swapchainBundle, 
-        const VkRenderPass& renderPass, 
-        const VkCommandPool& commandPool
-        );
+    void AddSwapchainBundleFrames(const VkDevice &device, SwapChainBundle& swapchainBundle, const VkRenderPass& renderPass, const VkCommandPool& commandPool);
 }
