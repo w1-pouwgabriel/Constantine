@@ -5,8 +5,7 @@ GraphicsApp::GraphicsApp(int width, int height)
 {
     CreateGLFW(width, height);
 
-    graphics = new VkGraphics(width, height, window);
-	
+    graphics = new VkGraphics(window, width, height);
 }
 
 GraphicsApp::~GraphicsApp()
@@ -26,10 +25,11 @@ void GraphicsApp::CreateGLFW(int width, int height)
 	//to the window later
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	//resizing breaks the swapchain, we'll disable it for now
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	//GLFWwindow* glfwCreateWindow (int width, int height, const char *title, GLFWmonitor *monitor, GLFWwindow *share)
 	if (window = glfwCreateWindow(width, height, "WindowGLFW", nullptr, nullptr)) {
+    	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 		#if ENABLE_VALIDATION_LAYER
 			std::cout << "Successfully made a glfw window, width: " << width << ", height: " << height << '\n';
 		#endif
@@ -63,9 +63,16 @@ void GraphicsApp::Run(Scene& scene)
 {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-		int width, height;
+
+		int width = 0, height = 0;
 		glfwGetWindowSize(window, &width, &height);
-		if(width > 0 && height > 0){
+		while (width == 0 || height == 0) 
+		{
+			glfwGetFramebufferSize(window, &width, &height);
+			glfwWaitEvents();
+    	}
+		if(width >= 0 || height >= 0)
+		{
 			graphics->Render(scene);
 			CalculateFrameRate();
 		}

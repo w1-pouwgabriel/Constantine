@@ -4,10 +4,7 @@
 
 #include "ResourceStructs.h"
 
-class Scene {
-
-public:
+struct Scene {
 	Scene();
-
 	std::vector<glm::vec3> trianglePositions;
 };

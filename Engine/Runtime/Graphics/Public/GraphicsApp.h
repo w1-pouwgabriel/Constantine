@@ -25,6 +25,5 @@ private:
 	float frameTime;
 
 	void CreateGLFW(int width, int height);
-
 	void CalculateFrameRate();
 };

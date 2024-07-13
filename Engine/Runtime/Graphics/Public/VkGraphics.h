@@ -7,12 +7,14 @@ class VkGraphics
 {
 public:
 	VkGraphics();
-	VkGraphics(int width, int height, GLFWwindow* window);
+	VkGraphics(GLFWwindow* window, int width = 640, int height = 480);
 	~VkGraphics();
 
 	void Render(Scene& scene);
 	void RecreateSwapchain();
 
+	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+	bool framebufferResized = false;
 private:
 	//GLFW
 	int windowWidth;
@@ -58,3 +60,8 @@ private:
 	//Draw command buffers
 	void DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageIndex, Scene& scene);
 };
+
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+	auto app = reinterpret_cast<VkGraphics*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
+}

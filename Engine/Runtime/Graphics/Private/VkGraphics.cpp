@@ -17,11 +17,10 @@ VkGraphics::VkGraphics()
 	//Empty for now
 }
 
-VkGraphics::VkGraphics(int width, int height, GLFWwindow *window)
+VkGraphics::VkGraphics(GLFWwindow *window, int width, int height)
+	: window(window), windowWidth(width), windowHeight(height)
 {
-	windowWidth = width;
-	windowHeight = height;
-	this->window = window;
+	glfwSetWindowUserPointer(window, this);
 
 	CreateInstance();
 	CreateSurface(window);
@@ -30,6 +29,7 @@ VkGraphics::VkGraphics(int width, int height, GLFWwindow *window)
 	CreateGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv");
 	CreatCommandPool();
 	CreateFramebuffers();
+	CreateSyncObjects(); // Ensure sync objects are created during initialization
 	FinalizeSetup();
 } 
 
@@ -92,13 +92,21 @@ void VkGraphics::CreatCommandPool()
 	}
 }
 
+void VkGraphics::CreateSyncObjects()
+{
+	for (size_t i = 0; i < swapchainFrames.size(); i++)
+	{
+		auto& frame = swapchainFrames[i];
+		VkInit::AddSyncObjects(device, frame);
+	}
+}
+
 void VkGraphics::FinalizeSetup()
 {
 	for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
 		auto& frame = swapchainFrames[i];
 		VkInit::AddCommandBuffer(device, commandPool, frame);
-		VkInit::AddSyncObjects(device, frame);
 	}
 }
 
@@ -119,6 +127,35 @@ void VkGraphics::CreateFramebuffers()
 	swapchainFrames = swapchainBundle.frames;
 	maxFramesInFlight = swapchainBundle.imageCount - 1;
 	frameNumber = 0;
+}
+
+void VkGraphics::RecreateSwapchain()
+{	
+	vkDeviceWaitIdle(device);
+
+    CleanupSwapchain();
+
+	CreateSwapchain();
+	CreateFramebuffers();
+	CreateSyncObjects();
+}
+
+void VkGraphics::CleanupSwapchain()
+{
+	for (size_t i = 0; i < swapchainFrames.size(); i++)
+	{
+		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
+		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
+		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
+		swapchainFrames[i].imageView = VK_NULL_HANDLE;
+		vkDestroySemaphore(device, swapchainFrames[i].imageAvailable, nullptr);
+		swapchainFrames[i].imageAvailable = VK_NULL_HANDLE;
+		vkDestroySemaphore(device, swapchainFrames[i].renderFinished, nullptr);
+		swapchainFrames[i].renderFinished = VK_NULL_HANDLE;
+		vkDestroyFence(device, swapchainFrames[i].inFlight, nullptr);
+		swapchainFrames[i].inFlight = VK_NULL_HANDLE;
+	}
+	vkDestroySwapchainKHR(device, swapchain, nullptr);
 }
 
 void VkGraphics::DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageIndex, Scene& scene) 
@@ -168,44 +205,24 @@ void VkGraphics::DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageI
 	}
 }
 
-void VkGraphics::RecreateSwapchain()
-{	
-	vkDeviceWaitIdle(device);
-
-    CleanupSwapchain();
-
-	CreateSwapchain();
-	CreateFramebuffers();
-}
-
-void VkGraphics::CleanupSwapchain()
-{
-	for (size_t i = 0; i < swapchainFrames.size(); i++)
-	{
-		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
-		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
-		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
-		swapchainFrames[i].imageView = VK_NULL_HANDLE;
-	}
-	vkDestroySwapchainKHR(device, swapchain, nullptr);
-}
-
 void VkGraphics::Render(Scene& scene)
 {
 	auto& frame = swapchainFrames[frameNumber];
 
 	vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, UINT64_MAX);
-	vkResetFences(device, 1, &frame.inFlight);
-	
+
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, frame.imageAvailable, VK_NULL_HANDLE, &imageIndex);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+		framebufferResized = false;
 		RecreateSwapchain();
 		return;
-	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
+	
+	vkResetFences(device, 1, &frame.inFlight);
 
 	vkResetCommandBuffer(frame.commandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 	DrawCommandbuffer(frame.commandBuffer, imageIndex, scene);
@@ -247,13 +264,9 @@ void VkGraphics::Render(Scene& scene)
 
 VkGraphics::~VkGraphics()
 {
-	vkDestroyCommandPool(device, commandPool, nullptr);
-	vkDestroyPipeline(device, pipeline, nullptr);
-	vkDestroyPipelineLayout(device, layout, nullptr);
-	vkDestroyRenderPass(device, renderPass, nullptr);
-
     for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
+		vkWaitForFences(device, 1, &swapchainFrames[i].inFlight, VK_TRUE, UINT64_MAX);
 		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
 		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
 		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
@@ -266,6 +279,11 @@ VkGraphics::~VkGraphics()
 		swapchainFrames[i].inFlight = VK_NULL_HANDLE;
 	}
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
+
+	vkDestroyCommandPool(device, commandPool, nullptr);
+	vkDestroyPipeline(device, pipeline, nullptr);
+	vkDestroyPipelineLayout(device, layout, nullptr);
+	vkDestroyRenderPass(device, renderPass, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
 
