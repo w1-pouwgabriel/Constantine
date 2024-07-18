@@ -78,7 +78,9 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp",
-        "text_encoding": "cpp"
+        "text_encoding": "cpp",
+        "buffer": "cpp",
+        "netfwd": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

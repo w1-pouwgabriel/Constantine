@@ -11,6 +11,9 @@ target_sources(Core PUBLIC ${CORE_PUBLIC_HEADERS})
 GROUPSOURCES(${SOURCE_RUNTIME_DIRECTORY}/Core/Private Private)
 GROUPSOURCES(${SOURCE_RUNTIME_DIRECTORY}/Core/Public Public)
 
+# Link libs
+target_link_libraries(Core PUBLIC Graphics)
+
 target_include_directories(Core PUBLIC ${SOURCE_THIRDPARTY_DIRECTORY}/glm)
 target_include_directories(Core PUBLIC ${SOURCE_THIRDPARTY_DIRECTORY}/stb)
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 /*
 * including the prebuilt header from the lunarg sdk will load
@@ -32,3 +32,4 @@
 #include <memory>
 #include <cstring>
 #include <sstream>
+#include <array>

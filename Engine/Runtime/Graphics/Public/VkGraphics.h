@@ -12,8 +12,7 @@ public:
 
 	void Render(Scene& scene);
 	void RecreateSwapchain();
-
-	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+	
 	bool framebufferResized = false;
 private:
 	//GLFW
@@ -28,12 +27,14 @@ private:
 	VkSurfaceKHR surface;
 	void CreateInstance();
 	void CreateSurface(GLFWwindow* window);
+
 	//	Device
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device = VK_NULL_HANDLE;
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
+	VkQueue graphicsQueue = VK_NULL_HANDLE;
+	VkQueue presentQueue = VK_NULL_HANDLE;
 	void CreateDevice();
+
 	// Swapchain
 	VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 	std::vector<VkUtil::SwapChainFrame> swapchainFrames;
@@ -43,19 +44,23 @@ private:
 	void CleanupSwapchain();
 	void CreateFramebuffers();
 	
-	//	Pipeline
-	VkPipelineLayout layout;
-	VkRenderPass renderPass;
-	VkPipeline pipeline;
+	//	Pipeline creation
+	VkPipelineLayout layout = VK_NULL_HANDLE;
+	VkRenderPass renderPass = VK_NULL_HANDLE;
+	VkPipeline pipeline = VK_NULL_HANDLE;
 	void CreateGraphicsPipeline(const std::string& vertexFilepath, const std::string& fragmentFilepath);
+
 	//	Command-related variables
-	VkCommandPool commandPool;
-	VkCommandBuffer mainCommandBuffer;
+	VkCommandPool commandPool = VK_NULL_HANDLE;
+	VkCommandBuffer mainCommandBuffer = VK_NULL_HANDLE;
 	int maxFramesInFlight, frameNumber = 0;
 	void CreatCommandPool();
 	void CreateSyncObjects();
 
 	void FinalizeSetup();
+
+	// TEMP
+	VkUtil::Model model;
 
 	//Draw command buffers
 	void DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageIndex, Scene& scene);

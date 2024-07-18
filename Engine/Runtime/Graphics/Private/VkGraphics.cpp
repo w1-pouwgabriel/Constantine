@@ -9,6 +9,7 @@
 #include "Command.h"
 #include "Sync.h"
 #include "Frame.h"
+#include "Buffers.h"
 
 #include <glm/ext/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale
 
@@ -105,9 +106,19 @@ void VkGraphics::FinalizeSetup()
 {
 	for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
-		auto& frame = swapchainFrames[i];
+		VkUtil::SwapChainFrame& frame = swapchainFrames[i];
 		VkInit::AddCommandBuffer(device, commandPool, frame);
 	}
+
+	model.vertices = {
+		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.5f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	};
+	VkUtil::BufferBundleIn input = VkUtil::BufferBundleIn{physicalDevice, device, commandPool, graphicsQueue};
+	VkUtil::BufferBundleOut vertexBufferBundle = VkUtil::CreateVertexBufferBundle(input, model.vertices);
+	model.vertexBuffer = vertexBufferBundle.buffer;
+	model.vertexBufferMemory = vertexBufferBundle.bufferMemory;
 }
 
 void VkGraphics::CreateFramebuffers()
@@ -131,8 +142,6 @@ void VkGraphics::CreateFramebuffers()
 
 void VkGraphics::RecreateSwapchain()
 {	
-	vkDeviceWaitIdle(device);
-
     CleanupSwapchain();
 
 	CreateSwapchain();
@@ -142,8 +151,13 @@ void VkGraphics::RecreateSwapchain()
 
 void VkGraphics::CleanupSwapchain()
 {
+	vkDeviceWaitIdle(device);
+
 	for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
+		// Wait for the fence to ensure the command buffer has finished execution
+        vkWaitForFences(device, 1, &swapchainFrames[i].inFlight, VK_TRUE, UINT64_MAX);
+
 		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
 		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
 		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);
@@ -155,6 +169,7 @@ void VkGraphics::CleanupSwapchain()
 		vkDestroyFence(device, swapchainFrames[i].inFlight, nullptr);
 		swapchainFrames[i].inFlight = VK_NULL_HANDLE;
 	}
+	
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
 }
 
@@ -196,7 +211,11 @@ void VkGraphics::DrawCommandbuffer(VkCommandBuffer commandBuffer, int32_t imageI
 		scissor.extent = swapchainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);            
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		VkBuffer vertexBuffers[] = {model.vertexBuffer};
+		VkDeviceSize offsets[] = {0};
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdDraw(commandBuffer, static_cast<uint32_t>(model.vertices.size()), 1, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
@@ -264,9 +283,17 @@ void VkGraphics::Render(Scene& scene)
 
 VkGraphics::~VkGraphics()
 {
+	// Wait for the device to be idle before destroying resources
+    vkDeviceWaitIdle(device);
+	
+	//Cleanup models
+	vkDestroyBuffer(device, model.vertexBuffer, nullptr);
+    vkFreeMemory(device, model.vertexBufferMemory, nullptr);
+	
     for (size_t i = 0; i < swapchainFrames.size(); i++)
 	{
 		vkWaitForFences(device, 1, &swapchainFrames[i].inFlight, VK_TRUE, UINT64_MAX);
+
 		vkDestroyFramebuffer(device, swapchainFrames[i].frameBuffer, nullptr);
 		swapchainFrames[i].frameBuffer = VK_NULL_HANDLE;
 		vkDestroyImageView(device, swapchainFrames[i].imageView, nullptr);

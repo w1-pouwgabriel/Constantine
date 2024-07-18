@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Utils.h"
+#include "Model.h"
 
-#include "ResourceStructs.h"
-
-struct Scene {
+struct Scene 
+{
 	Scene();
-	std::vector<glm::vec3> trianglePositions;
+
+	std::vector<VkUtil::Model> models;
 };

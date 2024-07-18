@@ -30,12 +30,12 @@ void GraphicsApp::CreateGLFW(int width, int height)
 	//GLFWwindow* glfwCreateWindow (int width, int height, const char *title, GLFWmonitor *monitor, GLFWwindow *share)
 	if (window = glfwCreateWindow(width, height, "WindowGLFW", nullptr, nullptr)) {
     	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-		#if ENABLE_VALIDATION_LAYER
+		#ifdef ENABLE_VALIDATION_LAYER
 			std::cout << "Successfully made a glfw window, width: " << width << ", height: " << height << '\n';
 		#endif
 	}
 	else {
-		#if ENABLE_VALIDATION_LAYER
+		#ifdef ENABLE_VALIDATION_LAYER
 			std::cout << "GLFW window creation failed\n";
 		#endif
 	}
@@ -71,10 +71,8 @@ void GraphicsApp::Run(Scene& scene)
 			glfwGetFramebufferSize(window, &width, &height);
 			glfwWaitEvents();
     	}
-		if(width >= 0 || height >= 0)
-		{
-			graphics->Render(scene);
-			CalculateFrameRate();
-		}
+		
+		graphics->Render(scene);
+		CalculateFrameRate();
 	}
 }
