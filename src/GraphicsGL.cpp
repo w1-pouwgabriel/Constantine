@@ -27,7 +27,6 @@ bool GraphicsGL::initialize(int width, int height, const std::string& title)
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);  // Enable vsync
 
     return true;
 }
@@ -37,13 +36,53 @@ void GraphicsGL::renderLoop()
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
-        // Render here
-        glClear(GL_COLOR_BUFFER_BIT);
+        handleInput();
 
-        // Swap front and back buffers
-        glfwSwapBuffers(window);
+        // Simulate ray tracing
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Calculate color based on position, simple color gradient for demo
+                float r = (float)x / width;
+                float g = (float)y / height;
+                float b = 0.5f;  // Static blue value
 
+                setPixel(x, y, r, g, b);
+            }
+        }
+
+        // Manually update the window with the framebuffer content
+        glDrawPixels(width, height, GL_RGB, GL_FLOAT, framebuffer.data());
+        
         // Poll for and process events
         glfwPollEvents();
+        glfwSwapBuffers(window);
     }
+};
+
+void GraphicsGL::setPixel(int x, int y, float r, float g, float b) 
+{ 
+    // Set the pixel color
+    framebuffer[(y * width + x) * 3 + 0] = r;
+    framebuffer[(y * width + x) * 3 + 1] = g;
+    framebuffer[(y * width + x) * 3 + 2] = b;
+};
+
+void GraphicsGL::handleInput() 
+{
+    // Handle input events
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    
+};
+
+bool GraphicsGL::saveFrame(const std::string &filename) 
+{ 
+    return true; 
+};
+
+void GraphicsGL::shutdown() 
+{ 
+    // Terminate GLFW
+    glfwTerminate();
 };

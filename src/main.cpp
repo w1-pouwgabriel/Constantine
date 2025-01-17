@@ -5,8 +5,12 @@ int main() {
     
     std::cout << "Hello, World!" << std::endl;
     GraphicsGL graphics;
-    graphics.initialize(600, 480, "Path tracer");
+    if (!graphics.initialize(800, 600, "Window")) {
+        return -1;
+    }
+
     graphics.renderLoop();
+    graphics.shutdown();
     
     return 0;
 }

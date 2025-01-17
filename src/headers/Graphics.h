@@ -20,6 +20,9 @@ public:
     // Save the current frame to an image file
     virtual bool saveFrame(const std::string& filename) = 0;
 
+    // Function to handle input events
+    virtual void handleInput() = 0;
+
     // Clean up and shut down the graphics system
     virtual void shutdown() = 0;
 

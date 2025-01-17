@@ -9,6 +9,7 @@ build/
 *.dylib
 *.exe
 *.out
+.cache/
 
 # Ignore CMake-related files
 CMakeCache.txt

@@ -11,22 +11,25 @@ public:
     GraphicsGL();
 
     // Add your methods and members here
-        // Initialize the graphics system
+    //  Initialize the graphics system
     virtual bool initialize(int width, int height, const std::string& title) override;
 
     // Render a frame
     virtual void renderLoop() override;
 
     // Set a pixel color at (x, y)
-    virtual void setPixel(int x, int y, float r, float g, float b) override {};
+    virtual void setPixel(int x, int y, float r, float g, float b) override;
 
     // Save the current frame to an image file
-    virtual bool saveFrame(const std::string& filename) override { return true; };
+    virtual bool saveFrame(const std::string &filename) override;
+
+    // Function to handle input events
+    virtual void handleInput() override;
 
     // Clean up and shut down the graphics system
-    virtual void shutdown() override { };
+    virtual void shutdown() override;
 
-private:
+  private:
     GLFWwindow* window;
 };
 
