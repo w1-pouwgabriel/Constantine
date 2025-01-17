@@ -35,8 +35,8 @@ bool GraphicsGL::initialize(int width, int height, const std::string& title)
 void GraphicsGL::renderLoop() 
 {
     // Main loop
-    while (!glfwWindowShouldClose(window)) {
-
+    while (!glfwWindowShouldClose(window)) 
+    {
         // Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
