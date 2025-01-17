@@ -1,0 +1,45 @@
+# Minimum CMake version
+cmake_minimum_required(VERSION 3.16)
+
+# Project name and version
+project(CPPProject VERSION 1.0 LANGUAGES CXX)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Specify project directories
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)  # Add the lib directory path
+
+# Include directories
+include_directories(${INCLUDE_DIR})
+
+# Gather source files
+file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
+
+# Add the executable
+add_executable(Constatine ${SRC_FILES})
+
+# Add GLFW include directory
+include_directories(${INCLUDE_DIR}/GLFW)
+
+# Add the GLFW library (assuming the DLL is in the lib folder)
+# You can link dynamically by setting the library location
+link_directories(${LIB_DIR})
+
+# Link the GLFW library (if you're using dynamic linking)
+target_link_libraries(Constatine ${LIB_DIR}/glfw3.dll)
+target_link_libraries(Constatine opengl32)
+
+# Optionally, if you're using static linking, you could add the GLFW static library (e.g., glfw3.a or glfw3.lib)
+# target_link_libraries(Constatine ${LIB_DIR}/libglfw3.a)
+
+# Set compiler explicitly (if needed)
+if(MINGW)
+    set(CMAKE_C_COMPILER gcc)
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+
