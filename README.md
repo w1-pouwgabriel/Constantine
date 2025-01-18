@@ -1,7 +1,3 @@
-# Path Tracer
-
-Welcome to the Path Tracer project! This README provides an overview of the features and setup instructions for the path tracer you are about to write.
-
 ## Features
 
 1. **Scene Setup**
