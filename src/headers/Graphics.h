@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,7 @@ public:
     virtual bool saveFrame(const std::string& filename) = 0;
 
     // Function to handle input events
-    virtual void handleInput() = 0;
+    virtual void handleInput(float deltaTime) = 0;
 
     // Clean up and shut down the graphics system
     virtual void shutdown() = 0;
@@ -29,6 +30,7 @@ public:
 protected:
     int width, height;
     std::vector<float> framebuffer;
+    std::chrono::high_resolution_clock::time_point lastTime;
 };
 
 #endif // GRAPHICS_H

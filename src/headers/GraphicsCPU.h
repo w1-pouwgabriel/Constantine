@@ -25,7 +25,7 @@ public:
     virtual bool saveFrame(const std::string &filename) override;
 
     // Function to handle input events
-    virtual void handleInput() override;
+    virtual void handleInput(float deltaTime) override;
 
     // Clean up and shut down the graphics system
     virtual void shutdown() override;

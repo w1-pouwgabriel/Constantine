@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <glm/glm.hpp>
+#include <string>
+#include <chrono>
 
 GraphicsCPU::GraphicsCPU() 
 {
@@ -40,6 +42,7 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
         0.0f, 
         1.0f
     );
+    this->lastTime = std::chrono::high_resolution_clock::now();
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
@@ -52,7 +55,11 @@ void GraphicsCPU::renderLoop()
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
-        handleInput();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+        lastTime = currentTime;
+
+        handleInput(deltaTime);
 
         Ray ray = Ray(glm::vec3(0,0,0), glm::vec3(0,0,-1));
 
@@ -76,10 +83,7 @@ void GraphicsCPU::renderLoop()
             }
         }
 
-        // Manually update the window with the framebuffer content
         glDrawPixels(width, height, GL_RGB, GL_FLOAT, framebuffer.data());
-        
-        // Poll for and process events
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
@@ -93,7 +97,7 @@ void GraphicsCPU::setPixel(int x, int y, float r, float g, float b)
     framebuffer[(y * width + x) * 3 + 2] = b;
 };
 
-void GraphicsCPU::handleInput() 
+void GraphicsCPU::handleInput(float deltaTime) 
 {
     // Handle input events
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -117,7 +121,7 @@ void GraphicsCPU::handleInput()
     }
 
     if (glm::length(movement) > 0.0f) {
-        cam.move(glm::normalize(movement));
+        cam.move(glm::normalize(movement) * deltaTime);
     }
     
 };
