@@ -1,10 +1,10 @@
 #include <iostream>
-#include "headers/GraphicsGL.h"
+#include "headers/GraphicsCPU.h"
 
 int main() {
     
     std::cout << "Hello, World!" << std::endl;
-    GraphicsGL graphics;
+    GraphicsCPU graphics;
     if (!graphics.initialize(800, 600, "Window")) {
         return -1;
     }

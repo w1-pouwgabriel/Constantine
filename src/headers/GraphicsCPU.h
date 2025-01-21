@@ -5,10 +5,10 @@
 
 #include <GLFW/glfw3.h>
 
-class GraphicsGL : public Graphics 
+class GraphicsCPU : public Graphics 
 {
 public:
-    GraphicsGL();
+    GraphicsCPU();
 
     // Add your methods and members here
     //  Initialize the graphics system

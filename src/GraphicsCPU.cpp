@@ -1,13 +1,16 @@
-#include "headers/GraphicsGL.h"
+#include "headers/GraphicsCPU.h"
+#include "glm/ext/vector_float3.hpp"
 
 #include <iostream>
+#include <glm/glm.hpp>
 
-GraphicsGL::GraphicsGL() {
+GraphicsCPU::GraphicsCPU() 
+{
     // Initialization code
 }
 
 // Initialize the graphics system
-bool GraphicsGL::initialize(int width, int height, const std::string& title)
+bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -31,7 +34,12 @@ bool GraphicsGL::initialize(int width, int height, const std::string& title)
     return true;
 }
 
-void GraphicsGL::renderLoop() 
+struct Ray {
+    glm::vec3 origin;
+    glm::vec3 direction;
+};
+
+void GraphicsCPU::renderLoop() 
 {
     // Main loop
     while (!glfwWindowShouldClose(window)) 
@@ -46,6 +54,8 @@ void GraphicsGL::renderLoop()
                 float g = (float)y / height;
                 float b = 0.5f;  // Static blue value
 
+                
+
                 setPixel(x, y, r, g, b);
             }
         }
@@ -59,7 +69,7 @@ void GraphicsGL::renderLoop()
     }
 };
 
-void GraphicsGL::setPixel(int x, int y, float r, float g, float b) 
+void GraphicsCPU::setPixel(int x, int y, float r, float g, float b) 
 { 
     // Set the pixel color
     framebuffer[(y * width + x) * 3 + 0] = r;
@@ -67,7 +77,7 @@ void GraphicsGL::setPixel(int x, int y, float r, float g, float b)
     framebuffer[(y * width + x) * 3 + 2] = b;
 };
 
-void GraphicsGL::handleInput() 
+void GraphicsCPU::handleInput() 
 {
     // Handle input events
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -76,12 +86,14 @@ void GraphicsGL::handleInput()
     
 };
 
-bool GraphicsGL::saveFrame(const std::string &filename) 
-{ 
+bool GraphicsCPU::saveFrame(const std::string &filename) 
+{
+    // Save the current frame to an image file
+
     return true; 
 };
 
-void GraphicsGL::shutdown() 
+void GraphicsCPU::shutdown() 
 { 
     // Terminate GLFW
     glfwTerminate();

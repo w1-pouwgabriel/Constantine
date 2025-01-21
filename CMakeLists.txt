@@ -17,8 +17,10 @@ set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)  # Add the lib directory path
 # Include directories
 include_directories(${INCLUDE_DIR})
 
-# Gather source files
-file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.cpp)
+# Gather source files, including tiny_gltf.cc
+file(GLOB_RECURSE SRC_FILES
+    ${SRC_DIR}/*.cpp
+)
 
 # Add the executable
 add_executable(Constatine ${SRC_FILES})
@@ -30,12 +32,12 @@ include_directories(${INCLUDE_DIR}/GLFW)
 # You can link dynamically by setting the library location
 link_directories(${LIB_DIR})
 
-# Link the GLFW library (if you're using dynamic linking)
+# Link some libraries
 target_link_libraries(Constatine ${LIB_DIR}/glfw3.dll)
 target_link_libraries(Constatine opengl32)
 
 # Optionally, if you're using static linking, you could add the GLFW static library (e.g., glfw3.a or glfw3.lib)
-# target_link_libraries(Constatine ${LIB_DIR}/libglfw3.a)
+target_link_libraries(Constatine ${LIB_DIR}/libtinygltf.a)
 
 # Set compiler explicitly (if needed)
 if(MINGW)
@@ -47,5 +49,5 @@ endif()
 add_custom_command(TARGET Constatine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/lib
-    ${CMAKE_BINARY_DIR}/lib
+    ${CMAKE_BINARY_DIR}
 )
