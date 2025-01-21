@@ -1,4 +1,5 @@
 #include "headers/GraphicsCPU.h"
+#include "headers/SceneManager.h"
 #include "headers/Camera.h" 
 #include "headers/Ray.h"
 #include "headers/primitive/Circle.h"
@@ -30,6 +31,15 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->width = width;
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
+    this->cam = Camera(
+        glm::vec3(0,0,1),
+        glm::vec3(0,0,-1), 
+        glm::vec3(0,1,0), 
+        90, 
+        (float)width / height, 
+        0.0f, 
+        1.0f
+    );
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
@@ -39,16 +49,6 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 
 void GraphicsCPU::renderLoop() 
 {
-    Camera cam = Camera(
-        glm::vec3(0,0,1),
-        glm::vec3(0,0,-1), 
-        glm::vec3(0,1,0), 
-        90, 
-        (float)width / height, 
-        0.5f, 
-        1.0f
-    );
-
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
@@ -64,7 +64,7 @@ void GraphicsCPU::renderLoop()
                 Circle circle = Circle(0.0f, 0.0f, 0.25f);
 
                 Ray ray = cam.generateRay((float)x / width, (float)y / height);
-                auto hit = circle.intersectCircle(ray);
+                auto hit = circle.intersect(ray);
 
                if (hit) {
                     glm::vec3 color = (hit->normal + 1.0f) * 0.5f;
@@ -98,6 +98,26 @@ void GraphicsCPU::handleInput()
     // Handle input events
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    // Keyboard Input
+    glm::vec3 movement(0.0f);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        movement += cam.direction; // Move forward
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        movement -= cam.direction; // Move backward
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        movement -= cam.right; // Move left
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        movement += cam.right; // Move right
+    }
+
+    if (glm::length(movement) > 0.0f) {
+        cam.move(glm::normalize(movement));
     }
     
 };

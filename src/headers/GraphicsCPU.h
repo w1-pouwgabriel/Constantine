@@ -1,7 +1,8 @@
 #ifndef GRAPHICS_GL_H
 #define GRAPHICS_GL_H
 
-#include "graphics.h"
+#include "Graphics.h"
+#include "Camera.h" 
 
 #include <GLFW/glfw3.h>
 
@@ -31,6 +32,7 @@ public:
 
   private:
     GLFWwindow* window;
+    Camera cam;
 };
 
 #endif // GRAPHICS_GL_H

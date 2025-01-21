@@ -7,7 +7,7 @@
 Circle::Circle(float x, float y, float radius)
     : x(x), y(y), radius(radius) {}
 
-std::optional<HitResult> Circle::intersectCircle(Ray& ray) {
+std::optional<HitResult> Circle::intersect(Ray& ray) {
     glm::vec3 oc = ray.origin - glm::vec3(x, y, 0.0f); // Circle is in the XY plane
     float a = glm::dot(ray.direction, ray.direction);
     float b = 2.0f * glm::dot(oc, ray.direction);

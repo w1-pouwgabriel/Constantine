@@ -14,6 +14,7 @@ struct Plane {          // Plane structure for the view frustum
 class Camera 
 {
 public:
+    Camera() : position(0.0f), direction(0.0f), right(0.0f), up(0.0f), fov(0.0f), aspectRatio(0.0f), aperture(0.0f), focusDist(0.0f) {};
     Camera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up, 
            float fov, float aspectRatio, float aperture, float focusDist);
 
@@ -29,8 +30,6 @@ public:
     // Matrices
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix() const;
-
-private:
 
     glm::vec3 position;
     glm::vec3 direction;

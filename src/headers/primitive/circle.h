@@ -10,7 +10,7 @@ class Circle
 {
     public:
     Circle(float x, float y, float radius);
-    std::optional<HitResult> intersectCircle(Ray& ray);
+    std::optional<HitResult> intersect(Ray& ray);
 
     private:
     float x;            // X coordinate of the center
