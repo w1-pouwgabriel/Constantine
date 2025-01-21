@@ -1,5 +1,8 @@
 #include "headers/GraphicsCPU.h"
-#include "glm/ext/vector_float3.hpp"
+#include "headers/Camera.h" 
+#include "headers/Ray.h"
+#include "headers/primitive/Circle.h"
+#include "headers/primitive/HitResult.h"
 
 #include <iostream>
 #include <glm/glm.hpp>
@@ -34,29 +37,42 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     return true;
 }
 
-struct Ray {
-    glm::vec3 origin;
-    glm::vec3 direction;
-};
-
 void GraphicsCPU::renderLoop() 
 {
+    Camera cam = Camera(
+        glm::vec3(0,0,1),
+        glm::vec3(0,0,-1), 
+        glm::vec3(0,1,0), 
+        90, 
+        (float)width / height, 
+        0.5f, 
+        1.0f
+    );
+
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
         handleInput();
 
+        Ray ray = Ray(glm::vec3(0,0,0), glm::vec3(0,0,-1));
+
         // Simulate ray tracing
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                // Calculate color based on position, simple color gradient for demo
-                float r = (float)x / width;
-                float g = (float)y / height;
-                float b = 0.5f;  // Static blue value
 
-                
+                // Check intersection with a circle
+                Circle circle = Circle(0.0f, 0.0f, 0.25f);
 
-                setPixel(x, y, r, g, b);
+                Ray ray = cam.generateRay((float)x / width, (float)y / height);
+                auto hit = circle.intersectCircle(ray);
+
+               if (hit) {
+                    glm::vec3 color = (hit->normal + 1.0f) * 0.5f;
+                    setPixel(x, y, color.r, color.g, color.b);
+                    //std::cout << "Hit at pixel (" << x << ", " << y << ") with normal: " << hit->normal.x << ", " << hit->normal.y << ", " << hit->normal.z << std::endl;
+                } else {
+                    setPixel(x, y, 0.0f, 0.0f, 0.0f);
+                }
             }
         }
 
