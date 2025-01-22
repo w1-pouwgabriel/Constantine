@@ -19,13 +19,21 @@ void Camera::move(const glm::vec3& delta) {
 
 // Rotate the camera by pitch (up/down) and yaw (left/right)
 void Camera::rotate(float pitch, float yaw) {
-    // Create rotation matrices for pitch and yaw
-    glm::mat4 pitchRotation = glm::rotate(glm::mat4(1.0f), pitch, right); // Rotate around the right axis
-    glm::mat4 yawRotation = glm::rotate(glm::mat4(1.0f), yaw, up); // Rotate around the up axis
+    static float pitchAngle = 0.0f;
+    static float yawAngle = 0.0f;
 
-    // Apply the rotations to the direction vector
-    direction = glm::vec3(pitchRotation * glm::vec4(direction, 0.0f)); // Rotate with pitch
-    direction = glm::vec3(yawRotation * glm::vec4(direction, 0.0f));   // Rotate with yaw
+    pitchAngle += pitch;
+    yawAngle += yaw;
+
+    // Constrain pitch to avoid flipping
+    pitchAngle = glm::clamp(pitchAngle, glm::radians(-89.0f), glm::radians(89.0f));
+
+    // Update direction vector
+    glm::vec3 front;
+    front.x = cos(yawAngle) * cos(pitchAngle);
+    front.y = sin(pitchAngle);
+    front.z = sin(yawAngle) * cos(pitchAngle);
+    direction = glm::normalize(front);
 
     updateCameraVectors();
     computeViewFrustum();
@@ -44,13 +52,33 @@ void Camera::setDirection(const glm::vec3& newTarget) {
     computeViewFrustum(); 
 }
 
+void Camera::processMouseMovement(float deltaX, float deltaY, float sensitivity) {
+    deltaX *= sensitivity;
+    deltaY *= sensitivity;
+
+    yaw += deltaX;
+    pitch += deltaY;
+
+    // Clamp the pitch to prevent flipping
+    if (pitch > 89.0f) pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
+
+    // Update direction vector
+    glm::vec3 newDirection;
+    newDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    newDirection.y = sin(glm::radians(pitch));
+    newDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction = glm::normalize(newDirection);
+
+    updateCameraVectors();
+}
+
 // Update the right and up vectors based on the new direction
 void Camera::updateCameraVectors() {
     right = glm::normalize(glm::cross(direction, up));  // Right vector is orthogonal to direction and up
     this->up = glm::cross(right, direction);  // Recalculate up to maintain orthogonality
 }
 
-// Generate a ray for a given pixel (u, v) in screen space
 Ray Camera::generateRay(float u, float v) const {
     glm::vec3 rayDirection = glm::normalize(lowerLeftCorner + u * horizontal + v * vertical - position);
     return Ray(position, rayDirection);

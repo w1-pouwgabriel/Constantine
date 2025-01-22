@@ -1,6 +1,7 @@
 #ifndef CIRCLE_H
 #define CIRCLE_H
 
+#include "glm/ext/vector_float3.hpp"
 #include <optional>
 
 class Ray;
@@ -9,12 +10,11 @@ struct HitResult;
 class Circle
 {
 public:
-    Circle(float x, float y, float radius);
+    Circle(glm::vec3 position, float radius);
     std::optional<HitResult> intersect(Ray& ray);
 
 private:
-    float x;
-    float y;
+    glm::vec3 position;
     float radius;
 };
 

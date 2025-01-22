@@ -30,9 +30,12 @@ public:
     // Clean up and shut down the graphics system
     virtual void shutdown() override;
 
+    Camera cam;
+    double lastMouseX, lastMouseY;
+    bool firstMouse = true;
+    float sensitivity = 0.1f;
   private:
     GLFWwindow* window;
-    Camera cam;
 };
 
 #endif // GRAPHICS_GL_H

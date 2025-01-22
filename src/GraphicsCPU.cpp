@@ -7,8 +7,69 @@
 
 #include <iostream>
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/intersect.hpp> // If you want a library function for ray-triangle
 #include <string>
 #include <chrono>
+
+
+bool rayTriangleIntersect(
+    const glm::vec3& origin,
+    const glm::vec3& direction,
+    const glm::vec3& v0, 
+    const glm::vec3& v1, 
+    const glm::vec3& v2, 
+    float& t, 
+    float& u, 
+    float& v)
+{
+    const float EPSILON = 1e-8f; // Small value to handle floating-point precision
+    glm::vec3 edge1 = v1 - v0;
+    glm::vec3 edge2 = v2 - v0;
+
+    glm::vec3 h = glm::cross(direction, edge2);
+    float a = glm::dot(edge1, h);
+
+    // Check if the ray is parallel to the triangle
+    if (a > -EPSILON && a < EPSILON) 
+        return false;
+
+    float f = 1.0f / a;
+    glm::vec3 s = origin - v0;
+    u = f * glm::dot(s, h);
+
+    // Check if the intersection is outside the triangle
+    if (u < 0.0f || u > 1.0f) 
+        return false;
+
+    glm::vec3 q = glm::cross(s, edge1);
+    v = f * glm::dot(direction, q);
+
+    if (v < 0.0f || u + v > 1.0f) 
+        return false;
+
+    t = f * glm::dot(edge2, q);
+
+    // Intersection exists if t > EPSILON
+    return t > EPSILON;
+}
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    static float lastX = xpos;
+    static float lastY = ypos;
+
+    float deltaX = xpos - lastX;
+    float deltaY = lastY - ypos; // Reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    GraphicsCPU* graphics = static_cast<GraphicsCPU*>(glfwGetWindowUserPointer(window));
+    if (graphics) {
+        graphics->cam.processMouseMovement(deltaX, deltaY);
+    }
+}
+
 
 GraphicsCPU::GraphicsCPU() 
 {
@@ -46,6 +107,9 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetWindowUserPointer(window, this);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     return true;
 }
@@ -58,25 +122,39 @@ void GraphicsCPU::renderLoop()
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
-
         handleInput(deltaTime);
+
+        std::cout << "time: " << deltaTime << std::endl;
 
         Ray ray = Ray(glm::vec3(0,0,0), glm::vec3(0,0,-1));
 
-        // Simulate ray tracing
+        Circle circle = Circle(glm::vec3(0.f,0.f,-1.f), 0.5f);
+
+        //----------------------------------------------------------------------------------
+        // Ray-Triangle Intersection
+        glm::vec3 v0(0.0f, 0.0f, 0.0f);
+        glm::vec3 v1(1.0f, 0.0f, 0.0f);
+        glm::vec3 v2(0.0f, 1.0f, 0.0f);
+        glm::vec3 origin(-0.5f, -0.5f, -1.0f);
+        glm::vec3 direction(0.0f, 0.0f, 1.0f);
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-
-                // Check intersection with a circle
-                Circle circle = Circle(0.0f, 0.0f, 0.25f);
-
+                float u  = (float)x / width;
+                float v = (float)y / height;
                 Ray ray = cam.generateRay((float)x / width, (float)y / height);
+
                 auto hit = circle.intersect(ray);
+                float t = 0;
+                auto hit2 = rayTriangleIntersect(origin, direction, v0, v1, v2, t, u, v);
 
                if (hit) {
                     glm::vec3 color = (hit->normal + 1.0f) * 0.5f;
                     setPixel(x, y, color.r, color.g, color.b);
                     //std::cout << "Hit at pixel (" << x << ", " << y << ") with normal: " << hit->normal.x << ", " << hit->normal.y << ", " << hit->normal.z << std::endl;
+                }else if (t > 0) {
+                    setPixel(x, y, 1.0f, 1.0f, 1.0f);
+                
                 } else {
                     setPixel(x, y, 0.0f, 0.0f, 0.0f);
                 }
@@ -104,6 +182,29 @@ void GraphicsCPU::handleInput(float deltaTime)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
+    // Mouse Input
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    if (firstMouse) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        firstMouse = false;
+    }
+
+    double deltaX = mouseX - lastMouseX;
+    double deltaY = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
+
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+
+    // Apply sensitivity
+    float offsetX = static_cast<float>(deltaX) * sensitivity;
+    float offsetY = static_cast<float>(deltaY) * sensitivity;
+
+    // Update camera direction
+    cam.rotate(glm::radians(offsetY), glm::radians(offsetX));
+
     // Keyboard Input
     glm::vec3 movement(0.0f);
 
@@ -123,7 +224,6 @@ void GraphicsCPU::handleInput(float deltaTime)
     if (glm::length(movement) > 0.0f) {
         cam.move(glm::normalize(movement) * deltaTime);
     }
-    
 };
 
 bool GraphicsCPU::saveFrame(const std::string &filename) 
