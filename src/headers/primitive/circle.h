@@ -13,9 +13,9 @@ public:
     std::optional<HitResult> intersect(Ray& ray);
 
 private:
-    float x;            // X coordinate of the center
-    float y;            // Y coordinate of the center
-    float radius;       // Radius of the circle
+    float x;
+    float y;
+    float radius;
 };
 
 #endif // CIRCLE_H
