@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <iostream>
 #include "headers/GraphicsCPU.h"
 
@@ -13,6 +12,5 @@ int main() {
     graphics.renderLoop();
     graphics.shutdown();
     
-    system("pause");
     return 0;
 }

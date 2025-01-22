@@ -1,4 +1,5 @@
 #include "headers/GraphicsCPU.h"
+#include "glfw3.h"
 #include "headers/SceneManager.h"
 #include "headers/Camera.h" 
 #include "headers/Ray.h"
@@ -95,12 +96,12 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(0,0,1),
-        glm::vec3(0,0,-1), 
-        glm::vec3(0,1,0), 
-        90, 
-        (float)width / height, 
-        0.0f, 
+        glm::vec3(5, 0, 5), // Camera position
+        glm::vec3(0, 0, 3), // Circle center
+        glm::vec3(0, 1, 0), // Up vector
+        90,                 // FOV
+        (float)width / height,
+        0.0f,
         1.0f
     );
     this->lastTime = std::chrono::high_resolution_clock::now();
@@ -108,14 +109,15 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     // Make the window's context current
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetWindowUserPointer(window, this);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetWindowUserPointer(window, this);
 
     return true;
 }
 
 void GraphicsCPU::renderLoop() 
 {
+
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
@@ -126,17 +128,9 @@ void GraphicsCPU::renderLoop()
 
         std::cout << "time: " << deltaTime << std::endl;
 
-        Ray ray = Ray(glm::vec3(0,0,0), glm::vec3(0,0,-1));
+        Ray ray;
 
-        Circle circle = Circle(glm::vec3(0.f,0.f,-1.f), 0.5f);
-
-        //----------------------------------------------------------------------------------
-        // Ray-Triangle Intersection
-        glm::vec3 v0(0.0f, 0.0f, 0.0f);
-        glm::vec3 v1(1.0f, 0.0f, 0.0f);
-        glm::vec3 v2(0.0f, 1.0f, 0.0f);
-        glm::vec3 origin(-0.5f, -0.5f, -1.0f);
-        glm::vec3 direction(0.0f, 0.0f, 1.0f);
+        Circle circle = Circle(glm::vec3(0.f,0.f,3.f), 0.25f);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -145,16 +139,11 @@ void GraphicsCPU::renderLoop()
                 Ray ray = cam.generateRay((float)x / width, (float)y / height);
 
                 auto hit = circle.intersect(ray);
-                float t = 0;
-                auto hit2 = rayTriangleIntersect(origin, direction, v0, v1, v2, t, u, v);
 
                if (hit) {
                     glm::vec3 color = (hit->normal + 1.0f) * 0.5f;
                     setPixel(x, y, color.r, color.g, color.b);
                     //std::cout << "Hit at pixel (" << x << ", " << y << ") with normal: " << hit->normal.x << ", " << hit->normal.y << ", " << hit->normal.z << std::endl;
-                }else if (t > 0) {
-                    setPixel(x, y, 1.0f, 1.0f, 1.0f);
-                
                 } else {
                     setPixel(x, y, 0.0f, 0.0f, 0.0f);
                 }
@@ -182,7 +171,6 @@ void GraphicsCPU::handleInput(float deltaTime)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    // Mouse Input
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
 

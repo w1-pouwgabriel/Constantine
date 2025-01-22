@@ -4,7 +4,14 @@
 Camera::Camera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up, 
                float fov, float aspectRatio, float aperture, float focusDist)
     : position(position), fov(fov), aspectRatio(aspectRatio), aperture(aperture), focusDist(focusDist) {
+    // Compute direction vector
     direction = glm::normalize(target - position);
+
+    // Calculate yaw and pitch from the direction vector
+    yaw = glm::degrees(atan2(direction.z, direction.x));  // Horizontal angle
+    pitch = glm::degrees(asin(direction.y));             // Vertical angle
+
+    // Compute right and up vectors
     right = glm::normalize(glm::cross(direction, up));
     this->up = glm::cross(right, direction);
 
@@ -18,23 +25,21 @@ void Camera::move(const glm::vec3& delta) {
 }
 
 // Rotate the camera by pitch (up/down) and yaw (left/right)
-void Camera::rotate(float pitch, float yaw) {
-    static float pitchAngle = 0.0f;
-    static float yawAngle = 0.0f;
+void Camera::rotate(float pitchOffset, float yawOffset) {
+    pitch += pitchOffset;
+    yaw += yawOffset;
 
-    pitchAngle += pitch;
-    yawAngle += yaw;
+    // Clamp pitch to avoid flipping
+    pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
-    // Constrain pitch to avoid flipping
-    pitchAngle = glm::clamp(pitchAngle, glm::radians(-89.0f), glm::radians(89.0f));
-
-    // Update direction vector
+    // Recompute the direction vector using spherical coordinates
     glm::vec3 front;
-    front.x = cos(yawAngle) * cos(pitchAngle);
-    front.y = sin(pitchAngle);
-    front.z = sin(yawAngle) * cos(pitchAngle);
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction = glm::normalize(front);
 
+    // Update camera vectors
     updateCameraVectors();
     computeViewFrustum();
 }
@@ -73,11 +78,11 @@ void Camera::processMouseMovement(float deltaX, float deltaY, float sensitivity)
     updateCameraVectors();
 }
 
-// Update the right and up vectors based on the new direction
 void Camera::updateCameraVectors() {
-    right = glm::normalize(glm::cross(direction, up));  // Right vector is orthogonal to direction and up
-    this->up = glm::cross(right, direction);  // Recalculate up to maintain orthogonality
+    right = glm::normalize(glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f))); // Cross with world up
+    up = glm::cross(right, direction); // Maintain orthogonality
 }
+
 
 Ray Camera::generateRay(float u, float v) const {
     glm::vec3 rayDirection = glm::normalize(lowerLeftCorner + u * horizontal + v * vertical - position);
