@@ -1,9 +1,6 @@
 #include "TriangleMesh.h"
-#include "HitResult.h"
-#include "../Ray.h"
 
 #include "glm/geometric.hpp"
-#include <limits>
 
 // Function to load a GLTF model
 void TriangleMesh::loadGLTF(const tinygltf::Model& model)
@@ -44,39 +41,4 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
 
 glm::vec3 TriangleMesh::computeNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) const {
     return glm::normalize(glm::cross(v1 - v0, v2 - v0));
-}
-
-std::optional<HitResult> TriangleMesh::intersect(Ray& ray) {
-    HitResult closestHit;
-    closestHit.t = std::numeric_limits<float>::max();
-    bool hitFound = false;
-
-    for (const auto& triangle : triangles) {
-        // Möller–Trumbore algorithm
-        glm::vec3 e1 = triangle.v1 - triangle.v0;
-        glm::vec3 e2 = triangle.v2 - triangle.v0;
-        glm::vec3 h = glm::cross(ray.direction, e2);
-        float a = glm::dot(e1, h);
-
-        if (std::abs(a) < 1e-8f) continue;
-
-        float f = 1.0f / a;
-        glm::vec3 s = ray.origin - triangle.v0;
-        float u = f * glm::dot(s, h);
-        if (u < 0.0f || u > 1.0f) continue;
-
-        glm::vec3 q = glm::cross(s, e1);
-        float v = f * glm::dot(ray.direction, q);
-        if (v < 0.0f || u + v > 1.0f) continue;
-
-        float t = f * glm::dot(e2, q);
-        if (t > 1e-8f && t < closestHit.t) {
-            closestHit.t = t;
-            closestHit.point = ray.origin + t * ray.direction;
-            closestHit.normal = triangle.normal;
-            hitFound = true;
-        }
-    }
-
-    return hitFound ? std::optional<HitResult>{closestHit} : std::nullopt;
 }

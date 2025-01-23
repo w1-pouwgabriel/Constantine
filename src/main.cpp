@@ -1,5 +1,4 @@
 #include "headers/AssetManager.h"
-#include "headers/SceneManager.h"
 #include "headers/GraphicsCPU.h"
 #include "headers/primitive/TriangleMesh.h"
 

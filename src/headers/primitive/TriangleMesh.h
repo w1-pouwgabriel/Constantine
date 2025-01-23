@@ -4,16 +4,10 @@
 #include "glm/vec3.hpp"
 #include <optional>
 #include <vector>
+#include "Triangle.h"
 #include "tiny_gltf.h"
 
 class Ray;
-struct HitResult;
-
-struct Triangle 
-{
-    glm::vec3 v0, v1, v2;
-    glm::vec3 normal;
-};
 
 class TriangleMesh 
 {
@@ -21,7 +15,7 @@ public:
     TriangleMesh () = default;
     
     void loadGLTF(const tinygltf::Model& model);
-    std::optional<HitResult> intersect(Ray& ray);
+    std::vector<Triangle>& getTriangles() { return triangles; }
 
 private:
     std::vector<Triangle> triangles;

@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vector>
+#include "primitive/Plane.h"
 
 #include "Ray.h" // Include the Ray class header
 
@@ -26,6 +28,7 @@ public:
     // Matrices
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix() const;
+    bool isTriangleInFrustum(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) const;
 
     float yaw;   // degrees
     float pitch; // degrees
@@ -42,6 +45,7 @@ public:
     glm::vec3 lowerLeftCorner; // Lower left corner of the view frustum
     glm::vec3 horizontal;      // Horizontal span of the view frustum
     glm::vec3 vertical;        // Vertical span of the view frustum
+    Plane planes[6];              // Planes of the view frustum
 
     void updateCameraVectors(); // Update the right and up vectors based on the new direction
     void computeViewFrustum();  // Compute the view frustum (lower left, horizontal, vertical)

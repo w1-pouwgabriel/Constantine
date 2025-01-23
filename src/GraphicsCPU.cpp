@@ -1,8 +1,7 @@
 #include "headers/GraphicsCPU.h"
-#include "headers/SceneManager.h"
 #include "headers/Camera.h" 
 #include "headers/primitive/Circle.h"
-#include "headers/primitive/HitResult.h"
+#include "headers/primitive/TriangleMesh.h"
 
 #include <iomanip>
 #include <sstream>
@@ -76,53 +75,57 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 
 void GraphicsCPU::renderLoop() 
 {
-    // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
+        // Calculate frame delta time
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
+
+        std::cout << "sec: " << deltaTime << std::endl;
+
+        // Handle input for movement and camera interaction
         handleInput(deltaTime);
 
-        std::cout << "time: " << deltaTime << std::endl;
-
-        Ray ray;
+        // Clear framebuffer
+        std::fill(framebuffer.begin(), framebuffer.end(), 0.0f);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                float u = (float)x / width;
-                float v = (float)y / height;
+                // Generate a ray for the current pixel
+                float u = static_cast<float>(x) / width;
+                float v = static_cast<float>(y) / height;
                 Ray ray = cam.generateRay(u, v);
 
                 float closestT = std::numeric_limits<float>::max();
                 glm::vec3 finalColor(0.0f); // Default to black
 
-                // for (auto& circle : circles) {
-                //     auto hit = circle.intersect(ray);
-                //     if (hit && hit->t < closestT) {
-                //         closestT = hit->t;
-                //         finalColor = (hit->normal + 1.0f) * 0.5f;
-                //     }
-                // }
+                // Iterate through all meshes
+                for (TriangleMesh& mesh : meshes) {
+                    for (Triangle& triangle : mesh.getTriangles()) 
+                    {
 
-                for (auto& mesh : meshes) {
-                    auto hit = mesh.intersect(ray);
-                    if (hit && hit->t < closestT) {
-                        closestT = hit->t;
-                        finalColor = (hit->normal + 1.0f) * 0.5f;
+                        // Perform ray-triangle intersection
+                        auto hit = triangle.intersect(ray);
+                        if (hit && hit->t < closestT) {
+                            closestT = hit->t;
+                            finalColor = (hit->normal + 1.0f) * 0.5f; // Convert normal to RGB
+                        }
                     }
                 }
 
-                // Set the pixel color to the closest hit's color or remain black
+                // Set the pixel color in the framebuffer
                 setPixel(x, y, finalColor.r, finalColor.g, finalColor.b);
             }
         }
 
+        // Draw the framebuffer
         glDrawPixels(width, height, GL_RGB, GL_FLOAT, framebuffer.data());
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
 };
+
 
 void GraphicsCPU::setPixel(int x, int y, float r, float g, float b) 
 { 
