@@ -3,13 +3,14 @@
 
 #include "Graphics.h"
 #include "Camera.h" 
+#include "SceneManager.h"
+#include "primitive/TriangleMesh.h"
 
 #include <GLFW/glfw3.h>
 
 class GraphicsCPU : public Graphics 
 {
 public:
-    GraphicsCPU();
 
     // Add your methods and members here
     //  Initialize the graphics system
@@ -21,6 +22,9 @@ public:
     // Set a pixel color at (x, y)
     virtual void setPixel(int x, int y, float r, float g, float b) override;
 
+    // Change the current scene
+    virtual void setCurrentScene(Scene* newScene) override { currentScene = newScene; };
+
     // Save the current frame to an image file
     virtual bool saveFrame(const std::string &filename) override;
 
@@ -30,12 +34,18 @@ public:
     // Clean up and shut down the graphics system
     virtual void shutdown() override;
 
+    void addMesh(TriangleMesh& mesh);
+
     Camera cam;
     double lastMouseX, lastMouseY;
     bool firstMouse = true;
     float sensitivity = 0.1f;
+    std::vector<Circle> circles;
+
   private:
     GLFWwindow* window;
+    std::vector<TriangleMesh> meshes;
 };
 
 #endif // GRAPHICS_GL_H
+

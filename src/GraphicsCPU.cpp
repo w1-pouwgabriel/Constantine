@@ -1,11 +1,13 @@
 #include "headers/GraphicsCPU.h"
-#include "glfw3.h"
 #include "headers/SceneManager.h"
 #include "headers/Camera.h" 
-#include "headers/Ray.h"
 #include "headers/primitive/Circle.h"
 #include "headers/primitive/HitResult.h"
 
+#include <iomanip>
+#include <sstream>
+#include <stb_image.h>
+#include <stb_image_write.h>
 #include <iostream>
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -13,49 +15,8 @@
 #include <string>
 #include <chrono>
 
-
-bool rayTriangleIntersect(
-    const glm::vec3& origin,
-    const glm::vec3& direction,
-    const glm::vec3& v0, 
-    const glm::vec3& v1, 
-    const glm::vec3& v2, 
-    float& t, 
-    float& u, 
-    float& v)
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
-    const float EPSILON = 1e-8f; // Small value to handle floating-point precision
-    glm::vec3 edge1 = v1 - v0;
-    glm::vec3 edge2 = v2 - v0;
-
-    glm::vec3 h = glm::cross(direction, edge2);
-    float a = glm::dot(edge1, h);
-
-    // Check if the ray is parallel to the triangle
-    if (a > -EPSILON && a < EPSILON) 
-        return false;
-
-    float f = 1.0f / a;
-    glm::vec3 s = origin - v0;
-    u = f * glm::dot(s, h);
-
-    // Check if the intersection is outside the triangle
-    if (u < 0.0f || u > 1.0f) 
-        return false;
-
-    glm::vec3 q = glm::cross(s, edge1);
-    v = f * glm::dot(direction, q);
-
-    if (v < 0.0f || u + v > 1.0f) 
-        return false;
-
-    t = f * glm::dot(edge2, q);
-
-    // Intersection exists if t > EPSILON
-    return t > EPSILON;
-}
-
-void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     static float lastX = xpos;
     static float lastY = ypos;
 
@@ -69,12 +30,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     if (graphics) {
         graphics->cam.processMouseMovement(deltaX, deltaY);
     }
-}
-
-
-GraphicsCPU::GraphicsCPU() 
-{
-    // Initialization code
 }
 
 // Initialize the graphics system
@@ -96,7 +51,7 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(5, 0, 5), // Camera position
+        glm::vec3(3, 0, 5), // Camera position
         glm::vec3(0, 0, 3), // Circle center
         glm::vec3(0, 1, 0), // Up vector
         90,                 // FOV
@@ -105,6 +60,10 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
         1.0f
     );
     this->lastTime = std::chrono::high_resolution_clock::now();
+    for(int i = 0; i < 5; i++)
+    {
+        circles.push_back(Circle(glm::vec3(rand() % 5, rand() % 5, rand() % 5), .125f));
+    }
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
@@ -117,7 +76,6 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 
 void GraphicsCPU::renderLoop() 
 {
-
     // Main loop
     while (!glfwWindowShouldClose(window)) 
     {
@@ -130,23 +88,33 @@ void GraphicsCPU::renderLoop()
 
         Ray ray;
 
-        Circle circle = Circle(glm::vec3(0.f,0.f,3.f), 0.25f);
-
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                float u  = (float)x / width;
+                float u = (float)x / width;
                 float v = (float)y / height;
-                Ray ray = cam.generateRay((float)x / width, (float)y / height);
+                Ray ray = cam.generateRay(u, v);
 
-                auto hit = circle.intersect(ray);
+                float closestT = std::numeric_limits<float>::max();
+                glm::vec3 finalColor(0.0f); // Default to black
 
-               if (hit) {
-                    glm::vec3 color = (hit->normal + 1.0f) * 0.5f;
-                    setPixel(x, y, color.r, color.g, color.b);
-                    //std::cout << "Hit at pixel (" << x << ", " << y << ") with normal: " << hit->normal.x << ", " << hit->normal.y << ", " << hit->normal.z << std::endl;
-                } else {
-                    setPixel(x, y, 0.0f, 0.0f, 0.0f);
+                // for (auto& circle : circles) {
+                //     auto hit = circle.intersect(ray);
+                //     if (hit && hit->t < closestT) {
+                //         closestT = hit->t;
+                //         finalColor = (hit->normal + 1.0f) * 0.5f;
+                //     }
+                // }
+
+                for (auto& mesh : meshes) {
+                    auto hit = mesh.intersect(ray);
+                    if (hit && hit->t < closestT) {
+                        closestT = hit->t;
+                        finalColor = (hit->normal + 1.0f) * 0.5f;
+                    }
                 }
+
+                // Set the pixel color to the closest hit's color or remain black
+                setPixel(x, y, finalColor.r, finalColor.g, finalColor.b);
             }
         }
 
@@ -208,17 +176,52 @@ void GraphicsCPU::handleInput(float deltaTime)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         movement += cam.right; // Move right
     }
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+        // Get the current time
+        auto now = std::chrono::system_clock::now();
+        auto timeT = std::chrono::system_clock::to_time_t(now);
+        std::tm tm = *std::localtime(&timeT); // Convert to local time
+
+        // Format the time as a string for the filename (e.g., YYYY-MM-DD_HH-MM-SS)
+        std::ostringstream timestamp;
+        timestamp << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
+
+        // Create the filename with the timestamp
+        std::string filename = "frames/frame_" + timestamp.str() + ".png";
+
+        // Save the frame with the generated filename
+        saveFrame(filename);
+
+        std::cout << "Saved frame to: " << filename << std::endl;
+    }
 
     if (glm::length(movement) > 0.0f) {
         cam.move(glm::normalize(movement) * deltaTime);
     }
 };
 
+void GraphicsCPU::addMesh(TriangleMesh& mesh) 
+{
+    meshes.push_back(mesh);
+}
+
 bool GraphicsCPU::saveFrame(const std::string &filename) 
 {
-    // Save the current frame to an image file
+    // Convert the framebuffer (float) to an 8-bit buffer for stb_image_write
+    std::vector<unsigned char> outputBuffer(width * height * 3);
+    for (int i = 0; i < width * height * 3; ++i) {
+        // Clamp and scale the float values (0.0 to 1.0) to 0-255 range
+        outputBuffer[i] = static_cast<unsigned char>(glm::clamp(framebuffer[i], 0.0f, 1.0f) * 255.0f);
+    }
 
-    return true; 
+    // Write the buffer to a PNG file
+    if (stbi_write_png(filename.c_str(), width, height, 3, outputBuffer.data(), width * 3)) {
+        std::cout << "Frame saved successfully to: " << filename << std::endl;
+        return true;
+    } else {
+        std::cerr << "Failed to save frame to: " << filename << std::endl;
+        return false;
+    }
 };
 
 void GraphicsCPU::shutdown() 

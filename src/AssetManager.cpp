@@ -22,5 +22,6 @@ std::shared_ptr<tinygltf::Model> AssetManager::loadModel(const std::string& file
     }
 
     models[filePath] = model;  // Cache the loaded model
+
     return model;
 }

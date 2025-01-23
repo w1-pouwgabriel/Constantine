@@ -1,13 +1,32 @@
-#include <iostream>
+#include "headers/AssetManager.h"
+#include "headers/SceneManager.h"
 #include "headers/GraphicsCPU.h"
+#include "headers/primitive/TriangleMesh.h"
 
-int main() {
-    
+#include <iostream>
+
+int main()
+{
     std::cout << "Hello, World!" << std::endl;
+
+    //Initialize the AssetManager
+    AssetManager& assetManager = AssetManager::getInstance();
+
+    TriangleMesh mesh;
+    mesh.loadGLTF(*assetManager.loadModel("assets/Cube/Cube.gltf"));
+
+    //Initialize the SceneManager
+    // SceneManager& sceneManager = SceneManager::getInstance();
+    // sceneManager.addScene("main", std::make_shared<CircleScene>());
+
     GraphicsCPU graphics;
-    if (!graphics.initialize(800, 600, "Window")) {
+    bool result = graphics.initialize(800, 600, "Ray Tracer");
+    if (!result) {
         return -1;
     }
+
+    //Load the mesh into the graphics system
+    graphics.addMesh(mesh);
 
     graphics.renderLoop();
     graphics.shutdown();
