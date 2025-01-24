@@ -106,7 +106,7 @@ void GraphicsCPU::renderLoop()
                 auto hit = plane.intersect(ray);
                 if (hit) {
                     
-                    finalColor = glm::vec3(1.0f, 0.0f, 0.0f);
+                    finalColor = glm::vec3(.3f, 0.3f, 0.3f);
                 }
 
                 // Iterate through all meshes
