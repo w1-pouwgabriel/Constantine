@@ -16,6 +16,19 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
     }
 }
 
+AABB TriangleMesh::computeAABB() const
+{
+    glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
+    glm::vec3 max = glm::vec3(-std::numeric_limits<float>::max());
+
+    for (const auto& triangle : triangles) {
+        min = glm::min(min, glm::min(triangle.v0, glm::min(triangle.v1, triangle.v2)));
+        max = glm::max(max, glm::max(triangle.v0, glm::max(triangle.v1, triangle.v2)));
+    }
+
+    return AABB{min, max};
+}
+
 void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive) {
     const auto& indicesAccessor = model.accessors[primitive.indices];
     const auto& indicesView = model.bufferViews[indicesAccessor.bufferView];

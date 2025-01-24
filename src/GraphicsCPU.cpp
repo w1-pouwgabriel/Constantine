@@ -1,18 +1,19 @@
-#include "headers/GraphicsCPU.h"
-#include "headers/Camera.h" 
-#include "headers/primitive/Circle.h"
-#include "headers/primitive/TriangleMesh.h"
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 
 #include <iomanip>
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
 #include <iostream>
-#include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/intersect.hpp> // If you want a library function for ray-triangle
 #include <string>
 #include <chrono>
+
+#include "headers/GraphicsCPU.h"
+#include "headers/Camera.h" 
+#include "headers/primitive/Circle.h"
+#include "headers/primitive/Plane.h"
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
@@ -50,19 +51,15 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(3, 0, 5), // Camera position
-        glm::vec3(0, 0, 3), // Circle center
-        glm::vec3(0, 1, 0), // Up vector
-        90,                 // FOV
+        glm::vec3(0, 0, 10),     // Camera position
+        glm::vec3(0, 0, 3),     // Circle center
+        glm::vec3(0, 1, 0),          // Up vector
+        90,                                 // FOV
         (float)width / height,
         0.0f,
         1.0f
     );
     this->lastTime = std::chrono::high_resolution_clock::now();
-    for(int i = 0; i < 5; i++)
-    {
-        circles.push_back(Circle(glm::vec3(rand() % 5, rand() % 5, rand() % 5), .125f));
-    }
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
@@ -90,6 +87,11 @@ void GraphicsCPU::renderLoop()
         // Clear framebuffer
         std::fill(framebuffer.begin(), framebuffer.end(), 0.0f);
 
+        Plane plane(glm::vec3(0.0f, -25.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));        
+        // Create the frustum
+        //Frustum frustum;
+        //frustum.extractPlanesFromMatrix(cam.getViewMatrix() * cam.getProjectionMatrix());
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // Generate a ray for the current pixel
@@ -100,13 +102,22 @@ void GraphicsCPU::renderLoop()
                 float closestT = std::numeric_limits<float>::max();
                 glm::vec3 finalColor(0.0f); // Default to black
 
+                 // Check for plane intersection
+                auto hit = plane.intersect(ray);
+                if (hit) {
+                    
+                    finalColor = glm::vec3(1.0f, 0.0f, 0.0f);
+                }
+
                 // Iterate through all meshes
-                for (TriangleMesh& mesh : meshes) {
+                for (TriangleMesh& mesh : meshes) 
+                {
+                    //if (frustum.isAABBInFrustum(mesh.computeAABB())) continue;
+
                     for (Triangle& triangle : mesh.getTriangles()) 
                     {
-
                         // Perform ray-triangle intersection
-                        auto hit = triangle.intersect(ray);
+                        auto hit = triangle.intersectFast(ray);
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
                             finalColor = (hit->normal + 1.0f) * 0.5f; // Convert normal to RGB
@@ -125,7 +136,6 @@ void GraphicsCPU::renderLoop()
         glfwSwapBuffers(window);
     }
 };
-
 
 void GraphicsCPU::setPixel(int x, int y, float r, float g, float b) 
 { 

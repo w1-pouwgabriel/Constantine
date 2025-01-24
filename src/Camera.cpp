@@ -110,27 +110,5 @@ void Camera::computeViewFrustum() {
     // Compute frustum planes (assuming near and far planes are 0.1 and 1000.0)
     glm::vec3 nearCenter = position + direction * 0.1f;
     glm::vec3 farCenter = position + direction * 1000.0f;
-
-    planes[0] = Plane(nearCenter, direction);                  // Near plane
-    planes[1] = Plane(farCenter, -direction);                  // Far plane
-    planes[2] = Plane(position, glm::cross(up, right));        // Left plane
-    planes[3] = Plane(position, glm::cross(right, -up));       // Right plane
-    planes[4] = Plane(position, glm::cross(direction, -up));   // Bottom plane
-    planes[5] = Plane(position, glm::cross(up, direction));    // Top plane
-
-}
-
-bool Camera::isTriangleInFrustum(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) const 
-{
-    for (int i = 0; i < 6; ++i) 
-    {
-        const Plane& plane = planes[i];
-
-        // Check if all vertices are outside this plane
-        if (!plane.isPointInside(v0) && !plane.isPointInside(v1) && !plane.isPointInside(v2)) 
-        {
-            return false; // Fully outside
-        }
-    }
-    return true; // At least partially inside
+    
 }
