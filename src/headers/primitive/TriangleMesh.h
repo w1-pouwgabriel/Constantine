@@ -1,8 +1,6 @@
 #ifndef TRIANGLEMESH_H
 #define TRIANGLEMESH_H
 
-#include "glm/vec3.hpp"
-#include <optional>
 #include <vector>
 #include "Triangle.h"
 #include "tiny_gltf.h"

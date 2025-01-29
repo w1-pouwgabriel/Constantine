@@ -2,6 +2,7 @@
 #include "headers/GraphicsCPU.h"
 #include "headers/primitive/TriangleMesh.h"
 
+#include <cstdlib>
 #include <iostream>
 
 int main()
@@ -29,6 +30,8 @@ int main()
 
     graphics.renderLoop();
     graphics.shutdown();
-    
+
+    system("pause");
+        
     return 0;
 }
