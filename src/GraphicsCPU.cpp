@@ -1,3 +1,4 @@
+#include "glfw3.h"
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 
@@ -51,10 +52,10 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(0, 0, 10),     // Camera position
-        glm::vec3(0, 0, 3),     // Circle center
-        glm::vec3(0, 1, 0),          // Up vector
-        90,                                 // FOV
+        glm::vec3(0, 0, 10),
+        glm::vec3(0, 0, 3),
+        glm::vec3(0, 1, 0),
+        90,
         (float)width / height,
         0.0f,
         1.0f
@@ -105,7 +106,6 @@ void GraphicsCPU::renderLoop()
                  // Check for plane intersection
                 auto hit = plane.intersect(ray);
                 if (hit) {
-                    
                     finalColor = glm::vec3(.3f, 0.3f, 0.3f);
                 }
 
@@ -147,6 +147,8 @@ void GraphicsCPU::setPixel(int x, int y, float r, float g, float b)
 
 void GraphicsCPU::handleInput(float deltaTime) 
 {
+    static bool rightMousePressed = false; // Track mouse state
+
     // Handle input events
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -155,24 +157,42 @@ void GraphicsCPU::handleInput(float deltaTime)
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
-    if (firstMouse) {
+    // Toggle input capture when pressing Right Mouse Button
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && !rightMousePressed) {
+        captureMouse = !captureMouse;
+        rightMousePressed = true;
+
+        // Reset mouse position to prevent sudden jumps
+        mouseX = lastMouseX;
+        mouseX = lastMouseY;
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE && rightMousePressed) {
+        // Reset mouse position to prevent sudden jumps
         lastMouseX = mouseX;
         lastMouseY = mouseY;
-        firstMouse = false;
+
+        rightMousePressed = false;
     }
 
-    double deltaX = mouseX - lastMouseX;
-    double deltaY = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
+    // Capture or release the mouse based on `captureMouse`
+    if (captureMouse) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+        double deltaX = mouseX - lastMouseX;
+        double deltaY = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
 
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
 
-    // Apply sensitivity
-    float offsetX = static_cast<float>(deltaX) * sensitivity;
-    float offsetY = static_cast<float>(deltaY) * sensitivity;
+        // Apply sensitivity
+        float offsetX = static_cast<float>(deltaX) * sensitivity;
+        float offsetY = static_cast<float>(deltaY) * sensitivity;
 
-    // Update camera direction
-    cam.rotate(glm::radians(offsetY), glm::radians(offsetX));
+        // Update camera direction
+        cam.rotate(glm::radians(offsetY), glm::radians(offsetX));
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 
     // Keyboard Input
     glm::vec3 movement(0.0f);

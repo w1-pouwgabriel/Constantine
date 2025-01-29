@@ -51,3 +51,10 @@ add_custom_command(TARGET Constatine POST_BUILD
     ${CMAKE_SOURCE_DIR}/lib
     ${CMAKE_BINARY_DIR}
 )
+
+# Copy all files from lib directory to the build directory
+add_custom_command(TARGET Constatine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_BINARY_DIR}/assets
+)

@@ -38,9 +38,8 @@ public:
 
     Camera cam;
     double lastMouseX, lastMouseY;
-    bool firstMouse = true;
-    float sensitivity = 0.1f;
-    std::vector<Circle> circles;
+    bool captureMouse = false;
+    float sensitivity = 1.25f;
 
   private:
     GLFWwindow* window;
