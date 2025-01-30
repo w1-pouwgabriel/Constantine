@@ -4,9 +4,11 @@
 #include "Graphics.h"
 #include "Camera.h" 
 #include "SceneManager.h"
-#include "primitive/TriangleMesh.h"
 
 #include <GLFW/glfw3.h>
+
+class Camera;
+class TriangleMesh;
 
 class GraphicsCPU : public Graphics 
 {
@@ -38,7 +40,7 @@ public:
 
     Camera cam;
     double lastMouseX, lastMouseY;
-    bool captureMouse = false;
+    bool captureInput = false;
     float sensitivity = 1.25f;
 
   private:

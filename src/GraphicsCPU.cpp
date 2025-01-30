@@ -12,9 +12,10 @@
 #include <chrono>
 
 #include "headers/GraphicsCPU.h"
-#include "headers/Camera.h" 
 #include "headers/primitive/Circle.h"
-#include "headers/primitive/Plane.h"
+#include "headers/primitive/Triangle.h"
+#include "headers/primitive/TriangleMesh.h"
+#include "headers/primitive/HitResult.h"
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
@@ -52,8 +53,8 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(0, 0, 10),
-        glm::vec3(0, 0, 3),
+        glm::vec3(5, 5, 5),
+        glm::vec3(0, 0, 1),
         glm::vec3(0, 1, 0),
         90,
         (float)width / height,
@@ -88,11 +89,6 @@ void GraphicsCPU::renderLoop()
         // Clear framebuffer
         std::fill(framebuffer.begin(), framebuffer.end(), 0.0f);
 
-        Plane plane(glm::vec3(0.0f, -25.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));        
-        // Create the frustum
-        //Frustum frustum;
-        //frustum.extractPlanesFromMatrix(cam.getViewMatrix() * cam.getProjectionMatrix());
-
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // Generate a ray for the current pixel
@@ -102,12 +98,6 @@ void GraphicsCPU::renderLoop()
 
                 float closestT = std::numeric_limits<float>::max();
                 glm::vec3 finalColor(0.0f); // Default to black
-
-                 // Check for plane intersection
-                auto hit = plane.intersect(ray);
-                if (hit) {
-                    finalColor = glm::vec3(.3f, 0.3f, 0.3f);
-                }
 
                 // Iterate through all meshes
                 for (TriangleMesh& mesh : meshes) 
@@ -159,7 +149,7 @@ void GraphicsCPU::handleInput(float deltaTime)
 
     // Toggle input capture when pressing Right Mouse Button
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && !rightMousePressed) {
-        captureMouse = !captureMouse;
+        captureInput = !captureInput;
         rightMousePressed = true;
 
         // Reset mouse position to prevent sudden jumps
@@ -175,7 +165,7 @@ void GraphicsCPU::handleInput(float deltaTime)
     }
 
     // Capture or release the mouse based on `captureMouse`
-    if (captureMouse) {
+    if (captureInput) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwGetCursorPos(window, &mouseX, &mouseY);
         double deltaX = mouseX - lastMouseX;
@@ -190,46 +180,46 @@ void GraphicsCPU::handleInput(float deltaTime)
 
         // Update camera direction
         cam.rotate(glm::radians(offsetY), glm::radians(offsetX));
-    } else {
+
+        // Keyboard Input
+        glm::vec3 movement(0.0f);
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            movement += cam.direction; // Move forward
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            movement -= cam.direction; // Move backward
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            movement -= cam.right; // Move left
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            movement += cam.right; // Move right
+        }
+
+        if (glm::length(movement) > 0.0f) {
+            cam.move(glm::normalize(movement) * deltaTime);
+        }
+    } 
+    else {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
-    // Keyboard Input
-    glm::vec3 movement(0.0f);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        movement += cam.direction; // Move forward
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        movement -= cam.direction; // Move backward
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        movement -= cam.right; // Move left
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        movement += cam.right; // Move right
-    }
+    // Save the current frame to a PNG file when the 'P' key is pressed
+    // Note: This will save the frame to the 'frames' directory
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-        // Get the current time
         auto now = std::chrono::system_clock::now();
         auto timeT = std::chrono::system_clock::to_time_t(now);
         std::tm tm = *std::localtime(&timeT); // Convert to local time
 
-        // Format the time as a string for the filename (e.g., YYYY-MM-DD_HH-MM-SS)
         std::ostringstream timestamp;
         timestamp << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
 
-        // Create the filename with the timestamp
         std::string filename = "frames/frame_" + timestamp.str() + ".png";
 
-        // Save the frame with the generated filename
         saveFrame(filename);
 
         std::cout << "Saved frame to: " << filename << std::endl;
-    }
-
-    if (glm::length(movement) > 0.0f) {
-        cam.move(glm::normalize(movement) * deltaTime);
     }
 };
 
