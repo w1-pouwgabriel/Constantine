@@ -137,7 +137,7 @@ void GraphicsCPU::setPixel(int x, int y, float r, float g, float b)
 
 void GraphicsCPU::handleInput(float deltaTime) 
 {
-    static bool rightMousePressed = false; // Track mouse state
+    rightMousePressed = false;
 
     // Handle input events
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

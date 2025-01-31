@@ -16,19 +16,6 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
     }
 }
 
-AABB TriangleMesh::computeAABB() const
-{
-    glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
-    glm::vec3 max = glm::vec3(-std::numeric_limits<float>::max());
-
-    for (const auto& triangle : triangles) {
-        min = glm::min(min, glm::min(triangle.v0, glm::min(triangle.v1, triangle.v2)));
-        max = glm::max(max, glm::max(triangle.v0, glm::max(triangle.v1, triangle.v2)));
-    }
-
-    return AABB{min, max};
-}
-
 void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive) 
 {
     const auto& indicesAccessor = model.accessors[primitive.indices];
@@ -54,7 +41,6 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
             hasNormals = false; // If empty, fall back to computing normals
         }
     }
-
     const auto& texCoordAcessor = model.accessors.at(primitive.attributes.at("TEXCOORD_0"));
     const auto& texCoordView = model.bufferViews[texCoordAcessor.bufferView];
     const auto& texCoordBuffer = model.buffers[texCoordView.buffer];
@@ -79,7 +65,13 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
             normal = computeNormal(v0, v1, v2);
         }
 
-        triangles.push_back({v0, v1, v2, normal});
+        const float* texCoordData = reinterpret_cast<const float*>(
+            texCoordBuffer.data.data() + texCoordView.byteOffset + texCoordAcessor.byteOffset);
+        glm::vec2 uv0 = glm::vec2(texCoordData[2 * indexData[i]], texCoordData[2 * indexData[i] + 1]);
+        glm::vec2 uv1 = glm::vec2(texCoordData[2 * indexData[i + 1]], texCoordData[2 * indexData[i + 1] + 1]);
+        glm::vec2 uv2 = glm::vec2(texCoordData[2 * indexData[i + 2]], texCoordData[2 * indexData[i + 2] + 1]);
+
+        triangles.push_back({v0, v1, v2, normal, uv0, uv1, uv2});
     }
 }
 

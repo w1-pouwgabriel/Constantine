@@ -7,11 +7,6 @@
 
 class Ray;
 
-struct AABB 
-{
-    glm::vec3 min, max;
-};
-
 class TriangleMesh 
 {
 public:
@@ -19,9 +14,6 @@ public:
     
     void loadGLTF(const tinygltf::Model& model);
     std::vector<Triangle>& getTriangles() { return triangles; }
-    
-    // New method to compute the AABB
-    AABB computeAABB() const;
 
 private:
     std::vector<Triangle> triangles;

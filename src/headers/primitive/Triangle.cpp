@@ -5,7 +5,6 @@
 std::optional<HitResult> Triangle::intersect(Ray& ray) {
     HitResult closestHit;
     closestHit.t = std::numeric_limits<float>::max();
-    bool hitFound = false;
 
     // Möller–Trumbore algorithm
     glm::vec3 e1 = v1 - v0; // Edge 1
@@ -23,7 +22,7 @@ std::optional<HitResult> Triangle::intersect(Ray& ray) {
     // Check if u is within the valid range
     if (u < 0.0f || u > 1.0f) return std::nullopt;
 
-    glm::vec3 q = glm::cross(s, e1);
+    glm::vec3 q = glm::cross(s, e1);  
     float v = f * glm::dot(ray.direction, q);
 
     // Check if v is within the valid range and u + v <= 1
@@ -36,10 +35,10 @@ std::optional<HitResult> Triangle::intersect(Ray& ray) {
         closestHit.t = t;
         closestHit.point = ray.origin + t * ray.direction;
         closestHit.normal = normal;
-        hitFound = true;
+        return closestHit;
     }
 
-    return hitFound ? std::optional<HitResult>{closestHit} : std::nullopt;
+    return std::nullopt;
 }
 
 std::optional<HitResult> Triangle::intersectFast(Ray& ray) {
@@ -50,7 +49,6 @@ std::optional<HitResult> Triangle::intersectFast(Ray& ray) {
     glm::vec3 h = glm::cross(ray.direction, edge2);
     float a = glm::dot(edge1, h);
 
-    // Early exit for parallel or back-facing triangles
     if (std::abs(a) < 1e-8f) return std::nullopt; // Parallel
     //if (a > 0.0f) return std::nullopt;
 
