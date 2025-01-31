@@ -12,10 +12,8 @@
 #include <chrono>
 
 #include "headers/GraphicsCPU.h"
-#include "headers/primitive/Circle.h"
-#include "headers/primitive/Triangle.h"
-#include "headers/primitive/TriangleMesh.h"
-#include "headers/primitive/HitResult.h"
+#include "headers/TriangleMesh.h"
+#include "headers/primitive/Plane.h"
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
@@ -86,6 +84,8 @@ void GraphicsCPU::renderLoop()
         // Handle input for movement and camera interaction
         handleInput(deltaTime);
 
+        Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
+
         // Clear framebuffer
         std::fill(framebuffer.begin(), framebuffer.end(), 0.0f);
 
@@ -107,11 +107,16 @@ void GraphicsCPU::renderLoop()
                     for (Triangle& triangle : mesh.getTriangles()) 
                     {
                         // Perform ray-triangle intersection
-                        auto hit = triangle.intersectFast(ray);
+                        auto hit = triangle.intersect(ray, mesh.getTextures());
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
-                            finalColor = (hit->normal + 1.0f) * 0.5f; // Convert normal to RGB
+                            finalColor = hit->color; // Convert normal to RGB
                         }
+                    }
+                    auto hit = plane.intersect(ray);
+                    if (hit && hit->t < closestT) {
+                        closestT = hit->t;
+                        finalColor = hit->normal * 0.5f; // Convert normal to RGB
                     }
                 }
 

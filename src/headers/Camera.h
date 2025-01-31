@@ -3,9 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "primitive/TriangleMesh.h"
 
-#include "Ray.h" // Include the Ray class header
+#include "Ray.h"
 
 class Camera 
 {

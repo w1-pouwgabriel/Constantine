@@ -1,5 +1,4 @@
 #include "Circle.h"
-#include "HitResult.h"
 #include "../Ray.h"
 
 #include <glm/glm.hpp> 

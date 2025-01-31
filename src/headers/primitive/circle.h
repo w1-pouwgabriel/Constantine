@@ -3,9 +3,9 @@
 
 #include "glm/ext/vector_float3.hpp"
 #include <optional>
+#include "HitResult.h"
 
 class Ray;
-struct HitResult;
 
 class Circle
 {

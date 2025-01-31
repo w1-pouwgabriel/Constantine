@@ -2,6 +2,15 @@
 
 #include "glm/geometric.hpp"
 
+TriangleMesh::TriangleMesh(const tinygltf::Model& model) 
+{
+    triangles.clear();
+    textures.clear();
+
+    loadGLTF(model);
+    loadTextures(model);
+}
+
 // Function to load a GLTF model
 void TriangleMesh::loadGLTF(const tinygltf::Model& model)
 {
@@ -15,6 +24,16 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
         }
     }
 }
+
+void TriangleMesh::loadTextures(const tinygltf::Model& model) 
+{
+    textures.clear();
+    
+    for (const auto& image : model.images) {
+        textures.emplace_back(image.width, image.height, image.component, image.image);
+    }
+}
+
 
 void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive) 
 {
@@ -45,6 +64,14 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
     const auto& texCoordView = model.bufferViews[texCoordAcessor.bufferView];
     const auto& texCoordBuffer = model.buffers[texCoordView.buffer];
 
+    int textureIndex = -1;
+    if (primitive.material >= 0) {
+        const auto& material = model.materials[primitive.material];
+        if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
+            textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+        }
+    }
+
     const uint16_t* indexData = reinterpret_cast<const uint16_t*>(
         indicesBuffer.data.data() + indicesView.byteOffset + indicesAccessor.byteOffset);
     const float* positionData = reinterpret_cast<const float*>(
@@ -71,7 +98,7 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
         glm::vec2 uv1 = glm::vec2(texCoordData[2 * indexData[i + 1]], texCoordData[2 * indexData[i + 1] + 1]);
         glm::vec2 uv2 = glm::vec2(texCoordData[2 * indexData[i + 2]], texCoordData[2 * indexData[i + 2] + 1]);
 
-        triangles.push_back({v0, v1, v2, normal, uv0, uv1, uv2});
+        triangles.push_back({v0, v1, v2, normal, uv0, uv1, uv2, textureIndex});
     }
 }
 

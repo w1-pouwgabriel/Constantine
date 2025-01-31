@@ -1,7 +1,7 @@
 #include "headers/AssetManager.h"
 #include <iostream>
 
-std::shared_ptr<tinygltf::Model> AssetManager::loadModel(const std::string& filePath) 
+tinygltf::Model AssetManager::loadModel(const std::string& filePath) 
 {
     auto it = models.find(filePath);
     if (it != models.end()) {
@@ -9,10 +9,10 @@ std::shared_ptr<tinygltf::Model> AssetManager::loadModel(const std::string& file
     }
 
     tinygltf::TinyGLTF loader;
-    auto model = std::make_shared<tinygltf::Model>();
+    auto model = tinygltf::Model();
     std::string err, warn;
 
-    bool success = loader.LoadASCIIFromFile(model.get(), &err, &warn, filePath);
+    bool success = loader.LoadASCIIFromFile(&model, &err, &warn, filePath);
     if (!success) {
         throw std::runtime_error("Failed to load GLTF model: " + err);
     }

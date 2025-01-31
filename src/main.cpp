@@ -1,6 +1,6 @@
 #include "headers/AssetManager.h"
 #include "headers/GraphicsCPU.h"
-#include "headers/primitive/TriangleMesh.h"
+#include "headers/TriangleMesh.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -11,13 +11,9 @@ int main()
 
     //Initialize the AssetManager
     AssetManager& assetManager = AssetManager::getInstance();
+    tinygltf::Model model = assetManager.loadModel("assets/Cube/Cube.gltf");
 
-    TriangleMesh mesh;
-    mesh.loadGLTF(*assetManager.loadModel("assets/Cube/Cube.gltf"));
-
-    //Initialize the SceneManager
-    // SceneManager& sceneManager = SceneManager::getInstance();
-    // sceneManager.addScene("main", std::make_shared<CircleScene>());
+    TriangleMesh cube = TriangleMesh(model);
 
     GraphicsCPU graphics;
     bool result = graphics.initialize(800, 600, "Ray Tracer");
@@ -26,7 +22,7 @@ int main()
     }
 
     //Load the mesh into the graphics system
-    graphics.addMesh(mesh);
+    graphics.addMesh(cube);
 
     graphics.renderLoop();
     graphics.shutdown();

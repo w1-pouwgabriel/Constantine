@@ -2,7 +2,7 @@
 #define GRAPHICS_GL_H
 
 #include "Graphics.h"
-#include "Camera.h" 
+#include "Camera.h"
 #include <GLFW/glfw3.h>
 
 class Camera;

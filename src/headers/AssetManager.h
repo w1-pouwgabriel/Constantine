@@ -3,7 +3,6 @@
 
 #include <string>
 #include <unordered_map>
-#include <memory>
 #include "tiny_gltf.h"
 
 class AssetManager {
@@ -15,7 +14,7 @@ public:
 
     //Some polymorphism here would be nice 
     //  - Create some kind of Model class that all model types inherit from
-    std::shared_ptr<tinygltf::Model> loadModel(const std::string& filePath);
+    tinygltf::Model loadModel(const std::string& filePath);
 
 private:
     AssetManager() {}
@@ -25,7 +24,7 @@ private:
     AssetManager(const AssetManager&) = delete;
     AssetManager& operator=(const AssetManager&) = delete;
 
-    std::unordered_map<std::string, std::shared_ptr<tinygltf::Model>> models;
+    std::unordered_map<std::string, tinygltf::Model> models;
 };
 
 #endif // ASSETMANAGER_H
