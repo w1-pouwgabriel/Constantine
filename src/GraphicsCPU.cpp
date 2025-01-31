@@ -72,6 +72,11 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
 
 void GraphicsCPU::renderLoop() 
 {
+    // Lights and plane can be precomputed once
+    Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
+    addLight(PointLight(glm::vec3(2, 5, 6), glm::vec3(1, 1, 1), 1.0f));
+    addLight(PointLight(glm::vec3(-3, 5, -10), glm::vec3(1, 0, 0), 5.8f)); // Red light
+
     while (!glfwWindowShouldClose(window)) 
     {
         // Calculate frame delta time
@@ -83,12 +88,10 @@ void GraphicsCPU::renderLoop()
 
         // Handle input for movement and camera interaction
         handleInput(deltaTime);
-
-        Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
-
+        
         // Clear framebuffer
         std::fill(framebuffer.begin(), framebuffer.end(), 0.0f);
-
+        
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // Generate a ray for the current pixel
@@ -99,24 +102,24 @@ void GraphicsCPU::renderLoop()
                 float closestT = std::numeric_limits<float>::max();
                 glm::vec3 finalColor(0.0f); // Default to black
 
-                // Iterate through all meshes
-                for (TriangleMesh& mesh : meshes) 
-                {
-                    //if (frustum.isAABBInFrustum(mesh.computeAABB())) continue;
-
-                    for (Triangle& triangle : mesh.getTriangles()) 
-                    {
-                        // Perform ray-triangle intersection
-                        auto hit = triangle.intersect(ray, mesh.getTextures());
+                for (auto& light : lights) {
+                
+                    for (TriangleMesh& mesh : meshes) {
+                        for (Triangle& triangle : mesh.getTriangles()) {
+                            // Perform ray-triangle intersection
+                            auto hit = triangle.intersect(ray, mesh.getTextures());
+                            if (hit && hit->t < closestT) {
+                                closestT = hit->t;
+                                auto lightColor = light.computeLighting(hit->point, hit->normal);
+                                finalColor =+ hit->color * lightColor;
+                            }
+                        }
+                        auto hit = plane.intersect(ray);
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
-                            finalColor = hit->color; // Convert normal to RGB
+                            auto lightColor = light.computeLighting(hit->point, hit->normal);
+                            finalColor =+ hit->color * 0.5f * lightColor;
                         }
-                    }
-                    auto hit = plane.intersect(ray);
-                    if (hit && hit->t < closestT) {
-                        closestT = hit->t;
-                        finalColor = hit->normal * 0.5f; // Convert normal to RGB
                     }
                 }
 
@@ -169,8 +172,8 @@ void GraphicsCPU::handleInput(float deltaTime)
         rightMousePressed = false;
     }
 
-    // Capture or release the mouse based on `captureMouse`
     if (captureInput) {
+
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwGetCursorPos(window, &mouseX, &mouseY);
         double deltaX = mouseX - lastMouseX;

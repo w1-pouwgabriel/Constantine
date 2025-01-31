@@ -36,7 +36,7 @@ std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture
         // Sample the texture if it exists
         if (textureIndex >= 0) {
             // Fetch the texture based on the index
-            const Texture& texture = textures[textureIndex]; // `textures` is a member of `TriangleMesh`
+            const Texture& texture = textures[textureIndex];
             glm::vec3 textureColor = texture.sample(uv.x, uv.y);
             closestHit.color = textureColor; // Store the texture color
         }
@@ -72,6 +72,7 @@ std::optional<HitResult> Triangle::intersectFast(Ray& ray) {
         closestHit.t = t;
         closestHit.point = ray.origin + t * ray.direction;
         closestHit.normal = normal;
+        closestHit.color = normal;
         return closestHit;
     }
 

@@ -80,8 +80,9 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
     for (size_t i = 0; i < indicesAccessor.count; i += 3) {
 
         glm::vec3 v0 = glm::vec3(positionData[3 * indexData[i]], positionData[3 * indexData[i] + 1], positionData[3 * indexData[i] + 2]);;
-        glm::vec3 v1 = glm::vec3(positionData[3 * indexData[i + 1]], positionData[3 * indexData[i + 1] + 1], positionData[3 * indexData[i + 1] + 2]);;
-        glm::vec3 v2 = glm::vec3(positionData[3 * indexData[i + 2]], positionData[3 * indexData[i + 2] + 1], positionData[3 * indexData[i + 2] + 2]);;
+        glm::vec3 v1 = glm::vec3(positionData[3 * indexData[i + 2]], positionData[3 * indexData[i + 2] + 1], positionData[3 * indexData[i + 2] + 2]);
+        glm::vec3 v2 = glm::vec3(positionData[3 * indexData[i + 1]], positionData[3 * indexData[i + 1] + 1], positionData[3 * indexData[i + 1] + 2]);
+
         glm::vec3 normal;
 
         if (hasNormals) {
@@ -94,9 +95,11 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
 
         const float* texCoordData = reinterpret_cast<const float*>(
             texCoordBuffer.data.data() + texCoordView.byteOffset + texCoordAcessor.byteOffset);
+
         glm::vec2 uv0 = glm::vec2(texCoordData[2 * indexData[i]], texCoordData[2 * indexData[i] + 1]);
         glm::vec2 uv1 = glm::vec2(texCoordData[2 * indexData[i + 1]], texCoordData[2 * indexData[i + 1] + 1]);
         glm::vec2 uv2 = glm::vec2(texCoordData[2 * indexData[i + 2]], texCoordData[2 * indexData[i + 2] + 1]);
+
 
         triangles.push_back({v0, v1, v2, normal, uv0, uv1, uv2, textureIndex});
     }

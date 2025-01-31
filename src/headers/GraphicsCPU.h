@@ -3,6 +3,7 @@
 
 #include "Graphics.h"
 #include "Camera.h"
+#include "light/PointLight.h"
 #include <GLFW/glfw3.h>
 
 class Camera;
@@ -32,11 +33,14 @@ public:
 
     void addMesh(TriangleMesh& mesh);
 
+    void addLight(const PointLight& light) { lights.push_back(light);}
+
     Camera cam;
 
   private:
     GLFWwindow* window;
     std::vector<TriangleMesh> meshes;
+    std::vector<PointLight> lights;
 
     double lastMouseX, lastMouseY;
     bool captureInput = false;

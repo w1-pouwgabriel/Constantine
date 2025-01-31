@@ -9,14 +9,12 @@ struct HitResult;
 class Plane
 {
 public:
-    glm::vec3 point;  // A point on the plane
-    glm::vec3 normal; // Normal vector of the plane
+    glm::vec3 point; 
+    glm::vec3 normal;
 
-    // Constructor that directly sets the plane's point and normal
     Plane(const glm::vec3& point, const glm::vec3& normal)
         : point(point), normal(glm::normalize(normal)) {}
 
-    // Ray-plane intersection
     std::optional<HitResult> intersect(Ray& ray) {
         // Calculate the denominator of the intersection equation
         float denom = glm::dot(ray.direction, normal);
@@ -42,8 +40,8 @@ public:
         hitResult.t = t;
         hitResult.point = intersectionPoint;
         hitResult.normal = normal;
-        hitResult.uv = glm::vec2(0); // No UV coordinates for a plane
-        hitResult.color = normal;
+        hitResult.uv = glm::vec2(0); // No UV coordinates for a plane?
+        hitResult.color = glm::vec3(1);
         
         return hitResult;
     }
