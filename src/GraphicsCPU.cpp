@@ -51,7 +51,7 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     this->height = height;
     this->framebuffer = std::vector<float>(width * height * 3, 0.0f);
     this->cam = Camera(
-        glm::vec3(5, 5, 5),
+        glm::vec3(-5, 5, -5),
         glm::vec3(0, 0, 1),
         glm::vec3(0, 1, 0),
         90,
@@ -74,8 +74,8 @@ void GraphicsCPU::renderLoop()
 {
     // Lights and plane can be precomputed once
     Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
-    addLight(PointLight(glm::vec3(2, 5, 6), glm::vec3(1, 1, 1), 1.0f));
-    addLight(PointLight(glm::vec3(-3, 5, -10), glm::vec3(1, 0, 0), 5.8f)); // Red light
+    addLight(PointLight(glm::vec3(3, 5, 6), glm::vec3(0, 0, 1), 1.0f));
+    addLight(PointLight(glm::vec3(-3, 5, -5), glm::vec3(1, 0, 0), 1.0f)); // Red light
 
     while (!glfwWindowShouldClose(window)) 
     {
@@ -99,11 +99,10 @@ void GraphicsCPU::renderLoop()
                 float v = static_cast<float>(y) / height;
                 Ray ray = cam.generateRay(u, v);
 
-                float closestT = std::numeric_limits<float>::max();
-                glm::vec3 finalColor(0.0f); // Default to black
 
+                glm::vec3 finalColor(0.0f); // Default to black
                 for (auto& light : lights) {
-                
+                float closestT = std::numeric_limits<float>::max();
                     for (TriangleMesh& mesh : meshes) {
                         for (Triangle& triangle : mesh.getTriangles()) {
                             // Perform ray-triangle intersection
@@ -111,14 +110,16 @@ void GraphicsCPU::renderLoop()
                             if (hit && hit->t < closestT) {
                                 closestT = hit->t;
                                 auto lightColor = light.computeLighting(hit->point, hit->normal);
-                                finalColor =+ hit->color * lightColor;
+                                finalColor = glm::vec3(1) * lightColor;
                             }
                         }
+
+                        //Do the plane intersection separately
                         auto hit = plane.intersect(ray);
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
                             auto lightColor = light.computeLighting(hit->point, hit->normal);
-                            finalColor =+ hit->color * 0.5f * lightColor;
+                            finalColor = hit->color * 0.5f * lightColor;
                         }
                     }
                 }
@@ -138,9 +139,9 @@ void GraphicsCPU::renderLoop()
 void GraphicsCPU::setPixel(int x, int y, float r, float g, float b) 
 { 
     // Set the pixel color
-    framebuffer[(y * width + x) * 3 + 0] = r;
-    framebuffer[(y * width + x) * 3 + 1] = g;
-    framebuffer[(y * width + x) * 3 + 2] = b;
+    framebuffer[(y * width + x) * 3 + 0] += r;
+    framebuffer[(y * width + x) * 3 + 1] += g;
+    framebuffer[(y * width + x) * 3 + 2] += b;
 };
 
 void GraphicsCPU::handleInput(float deltaTime) 
