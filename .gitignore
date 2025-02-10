@@ -5,7 +5,7 @@ build/
 *.o
 *.obj
 *.so
-*.a
+# *.a  #// static libs
 *.dylib
 *.exe
 *.out

@@ -21,7 +21,6 @@
 
 - C++ Compiler
 - CMake
-- OpenGL
 - GLFW
 
 ### Installation
