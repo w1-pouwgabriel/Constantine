@@ -36,7 +36,7 @@ link_directories(${LIB_DIR})
 target_link_libraries(Constatine ${LIB_DIR}/glfw3.dll)
 target_link_libraries(Constatine opengl32)
 
-# Optionally, if you're using static linking, you could add the GLFW static library (e.g., glfw3.a or glfw3.lib)
+# Static linking (e.g., glfw3.a or glfw3.lib)
 target_link_libraries(Constatine ${LIB_DIR}/libtinygltf.a)
 
 # Set compiler explicitly (if needed)
@@ -45,12 +45,16 @@ if(MINGW)
     set(CMAKE_CXX_COMPILER g++)
 endif()
 
-# Copy all files from lib directory to the build directory
-add_custom_command(TARGET Constatine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/lib
-    ${CMAKE_BINARY_DIR}
-)
+# Find all DLL files in the lib directory
+file(GLOB DLL_FILES "${CMAKE_SOURCE_DIR}/lib/*.dll")
+
+# Copy each DLL file to the build directory
+foreach(DLL ${DLL_FILES})
+    add_custom_command(TARGET Constatine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${DLL} ${CMAKE_BINARY_DIR}
+    )
+endforeach()
 
 # Copy all files from lib directory to the build directory
 add_custom_command(TARGET Constatine POST_BUILD
