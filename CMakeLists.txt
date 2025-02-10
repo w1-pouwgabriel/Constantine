@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Specify project directories
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)  # Add the lib directory path
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 
 # Include directories
 include_directories(${INCLUDE_DIR})
