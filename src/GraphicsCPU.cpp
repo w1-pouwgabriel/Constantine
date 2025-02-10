@@ -81,10 +81,10 @@ void GraphicsCPU::renderLoop()
     {
         // Calculate frame delta time
         auto currentTime = std::chrono::high_resolution_clock::now();
-        float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+        float deltaTime = std::chrono::duration<float, std::milli>(currentTime - lastTime).count();
         lastTime = currentTime;
 
-        std::cout << "sec: " << deltaTime << std::endl;
+        std::cout << deltaTime << " ms" << std::endl;
 
         // Handle input for movement and camera interaction
         handleInput(deltaTime);
@@ -101,26 +101,30 @@ void GraphicsCPU::renderLoop()
 
 
                 glm::vec3 finalColor(0.0f); // Default to black
-                for (auto& light : lights) {
                 float closestT = std::numeric_limits<float>::max();
-                    for (TriangleMesh& mesh : meshes) {
-                        for (Triangle& triangle : mesh.getTriangles()) {
-                            // Perform ray-triangle intersection
-                            auto hit = triangle.intersect(ray, mesh.getTextures());
-                            if (hit && hit->t < closestT) {
-                                closestT = hit->t;
-                                auto lightColor = light.computeLighting(hit->point, hit->normal);
-                                finalColor = glm::vec3(1) * lightColor;
-                            }
-                        }
 
-                        //Do the plane intersection separately
-                        auto hit = plane.intersect(ray);
+                for (TriangleMesh& mesh : meshes) {
+                    for (Triangle& triangle : mesh.getTriangles()) {
+                        // Perform ray-triangle intersection
+                        auto hit = triangle.intersect(ray, mesh.getTextures());
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
-                            auto lightColor = light.computeLighting(hit->point, hit->normal);
-                            finalColor = hit->color * 0.5f * lightColor;
+                            double extra;
+                            double extra2;
+
+                            float x = modf(hit->uv.x, &extra);
+                            float y = modf(hit->uv.y, &extra2);
+                            
+                            finalColor = glm::vec3(x,y,0);
                         }
+                    }
+
+                    //Do the plane intersection separately
+                    auto hit = plane.intersect(ray);
+                    if (hit && hit->t < closestT) {
+                        closestT = hit->t;
+
+                        finalColor = hit->color * 0.5f;
                     }
                 }
 
@@ -153,7 +157,7 @@ void GraphicsCPU::handleInput(float deltaTime)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    double mouseX, mouseY;
+    double mouseX = width / 2, mouseY = height / 2;
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
     // Toggle input capture when pressing Right Mouse Button
@@ -161,12 +165,11 @@ void GraphicsCPU::handleInput(float deltaTime)
         captureInput = !captureInput;
         rightMousePressed = true;
 
-        // Reset mouse position to prevent sudden jumps
         mouseX = lastMouseX;
         mouseX = lastMouseY;
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE && rightMousePressed) {
-        // Reset mouse position to prevent sudden jumps
+        //Reset mouse position to prevent sudden jumps
         lastMouseX = mouseX;
         lastMouseY = mouseY;
 
@@ -184,8 +187,8 @@ void GraphicsCPU::handleInput(float deltaTime)
         lastMouseY = mouseY;
 
         // Apply sensitivity
-        float offsetX = static_cast<float>(deltaX) * sensitivity;
-        float offsetY = static_cast<float>(deltaY) * sensitivity;
+        float offsetX = deltaX * sensitivity;
+        float offsetY = deltaY * sensitivity;
 
         // Update camera direction
         cam.rotate(glm::radians(offsetY), glm::radians(offsetX));

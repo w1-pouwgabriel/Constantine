@@ -28,6 +28,4 @@ private:
     glm::vec3 computeNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) const;
 };
 
-
-
 #endif // TRIANGLEMESH_H

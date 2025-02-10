@@ -20,7 +20,7 @@ Makefile
 CTestTestfile.cmake
 
 # Ignore IDE-specific files (if applicable)
-#.vscode/
+.vscode/
 .idea/
 *.sublime-workspace
 *.sublime-project

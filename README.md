@@ -30,14 +30,13 @@
     mkdir build
     cd build
     cmake ..
-    make
     ```
 
 ### Usage
 
 1. Run the path tracer:
     ```sh
-    ./path_tracer
+    ./Constatine.exe
     ```
 
 2. Configure the scene by editing the `scene.json` file.
@@ -50,19 +49,14 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 
 This project is licensed under the MIT License.
 
-### Acknowledgements
-
-- [PBRT](http://www.pbrt.org/)
-- [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
-
-Happy coding!
 ## Contact
 
-For any questions or feedback, please contact [your email](mailto:your.email@example.com).
+For any questions or feedback, please contact [email](mailto:gabriel.pouw@gmail.com).
 
 ## References
 
 - [PBRT](http://www.pbrt.org/)
 - [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+- [BVH Building](https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/)
 
 Thank you for using the Path Tracer project.
