@@ -1,8 +1,9 @@
 #include "../headers/TriangleMesh.h"
+#include <glm/geometric.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include "glm/geometric.hpp"
-
-TriangleMesh::TriangleMesh(const tinygltf::Model& model) 
+TriangleMesh::TriangleMesh(const tinygltf::Model& model)
+: transformMatrix(glm::mat4(1))
 {
     triangles.clear();
     textures.clear();
@@ -19,6 +20,7 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
     for (const auto& mesh : model.meshes) {
         for (const auto& primitive : mesh.primitives) {
             if (primitive.mode == TINYGLTF_MODE_TRIANGLES) {
+                
                 processPrimitive(model, primitive);
             }
         }
@@ -33,7 +35,6 @@ void TriangleMesh::loadTextures(const tinygltf::Model& model)
         textures.emplace_back(image.width, image.height, image.component, image.image);
     }
 }
-
 
 void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive) 
 {
@@ -79,7 +80,7 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
 
     for (size_t i = 0; i < indicesAccessor.count; i += 3) {
 
-        glm::vec3 v0 = glm::vec3(positionData[3 * indexData[i]], positionData[3 * indexData[i] + 1], positionData[3 * indexData[i] + 2]);;
+        glm::vec3 v0 = glm::vec3(positionData[3 * indexData[i]], positionData[3 * indexData[i] + 1], positionData[3 * indexData[i] + 2]);
         glm::vec3 v1 = glm::vec3(positionData[3 * indexData[i + 1]], positionData[3 * indexData[i + 1] + 1], positionData[3 * indexData[i + 1] + 2]);
         glm::vec3 v2 = glm::vec3(positionData[3 * indexData[i + 2]], positionData[3 * indexData[i + 2] + 1], positionData[3 * indexData[i + 2] + 2]);
 

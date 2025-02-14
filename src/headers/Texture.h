@@ -9,11 +9,12 @@ class Texture
 {
 public:
 
-    Texture(int w, int h, int comp, const std::vector<unsigned char>& imgData)
+    Texture(int w, int h, int comp, std::vector<unsigned char> imgData)
         : width(w), height(h), components(comp), data(imgData) {}
 
     // Sample the texture at normalized UV coordinates (0 to 1)
-    glm::vec3 sample(float u, float v) const {
+    glm::vec3 sample(float u, float v) const 
+    {
         // Clamp the coordinates to avoid out of bounds access
         u = glm::clamp(u, 0.0f, 1.0f);
         v = glm::clamp(v, 0.0f, 1.0f);

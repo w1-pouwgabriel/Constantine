@@ -4,6 +4,7 @@
 #include <vector>
 #include "./primitive/Triangle.h"
 #include "./Texture.h"
+#include "glm/fwd.hpp"
 #include "tiny_gltf.h"
 
 class Ray;
@@ -12,8 +13,6 @@ class TriangleMesh
 {
 public:
     TriangleMesh(const tinygltf::Model& model);
-    TriangleMesh(std::vector<Triangle> triangles, std::vector<Texture> textures)
-        : triangles(triangles), textures(textures) {};
     
     std::vector<Triangle>& getTriangles() { return triangles; }
     std::vector<Texture>& getTextures() { return textures; }
@@ -21,6 +20,7 @@ public:
 private:
     std::vector<Triangle> triangles;
     std::vector<Texture> textures;
+    glm::mat4 transformMatrix;
 
     void processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
     void loadGLTF(const tinygltf::Model& model);

@@ -2,7 +2,7 @@
 #include "../Texture.h"
 #include "../Ray.h"
 
-std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture>& textures) {
+std::optional<HitResult> Triangle::intersect(const Ray& ray, const std::vector<Texture>& textures) {
     HitResult closestHit;
     closestHit.t = std::numeric_limits<float>::max();
 
@@ -40,6 +40,8 @@ std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture
             const Texture& texture = textures[textureIndex];
             glm::vec3 textureColor = texture.sample(uv.x, uv.y);
             closestHit.color = textureColor; // Store the texture color
+        }else{
+            closestHit.color = normal;
         }
 
         return closestHit;
@@ -48,7 +50,7 @@ std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture
     return std::nullopt;
 }
 
-std::optional<HitResult> Triangle::intersectFast(Ray& ray) {
+std::optional<HitResult> Triangle::intersectFast(const Ray& ray, const std::vector<Texture>& textures) {
     HitResult closestHit;
     closestHit.t = std::numeric_limits<float>::max();
 
@@ -68,12 +70,24 @@ std::optional<HitResult> Triangle::intersectFast(Ray& ray) {
     float v = f * glm::dot(ray.direction, q);
     if (v < 0.0f || u + v > 1.0f) return std::nullopt;
 
+    // Barycentric interpolation for UV coordinates
+    float w = 1.0f - u - v;
+    glm::vec2 uv = w * uv0 + u * uv1 + v * uv2;
+
     float t = f * glm::dot(edge2, q);
     if (t > 1e-8f && t < closestHit.t) {
         closestHit.t = t;
         closestHit.point = ray.origin + t * ray.direction;
-        closestHit.normal = normal;
-        closestHit.color = normal;
+        closestHit.normal = glm::normalize(normal);
+        // Sample the texture if it exists
+        if (textureIndex >= 0) {
+            // Fetch the texture based on the index
+            const Texture& texture = textures[textureIndex];
+            glm::vec3 textureColor = texture.sample(uv.y, uv.x);
+            closestHit.color = textureColor; // Store the texture color
+        }else{
+            closestHit.color = normal;
+        }
         return closestHit;
     }
 
