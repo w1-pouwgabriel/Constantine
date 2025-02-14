@@ -45,7 +45,6 @@ public:
     double lastMouseX, lastMouseY;
     bool captureInput = false;
     bool rightMousePressed = false;
-    float sensitivity = 1.25f;
 };
 
 #endif // GRAPHICS_GL_H

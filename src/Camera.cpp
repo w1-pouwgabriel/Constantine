@@ -21,7 +21,7 @@ Camera::Camera(const glm::vec3& position, const glm::vec3& target, const glm::ve
 // Move the camera by a given offset
 void Camera::move(const glm::vec3& delta) {
     position += delta;
-    computeViewFrustum();  // Recompute the frustum after moving
+    computeViewFrustum();
 }
 
 // Rotate the camera by pitch (up/down) and yaw (left/right)
@@ -33,11 +33,11 @@ void Camera::rotate(float pitchOffset, float yawOffset) {
     pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
     // Recompute the direction vector using spherical coordinates
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction = glm::normalize(front);
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+    direction = glm::normalize(direction);
 
     // Update camera vectors
     updateCameraVectors();
@@ -76,6 +76,7 @@ void Camera::processMouseMovement(float deltaX, float deltaY, float sensitivity)
     direction = glm::normalize(newDirection);
 
     updateCameraVectors();
+    computeViewFrustum(); 
 }
 
 void Camera::updateCameraVectors() {

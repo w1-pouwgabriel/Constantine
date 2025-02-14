@@ -157,7 +157,7 @@ void GraphicsCPU::handleInput(float deltaTime)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    double mouseX = width / 2, mouseY = height / 2;
+    double mouseX , mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
     // Toggle input capture when pressing Right Mouse Button
@@ -165,8 +165,8 @@ void GraphicsCPU::handleInput(float deltaTime)
         captureInput = !captureInput;
         rightMousePressed = true;
 
-        mouseX = lastMouseX;
-        mouseX = lastMouseY;
+        // Correctly initialize lastMouseX and lastMouseY to prevent sudden jumps
+        glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE && rightMousePressed) {
         //Reset mouse position to prevent sudden jumps
@@ -187,30 +187,32 @@ void GraphicsCPU::handleInput(float deltaTime)
         lastMouseY = mouseY;
 
         // Apply sensitivity
+        float sensitivity = 1.25f;
         float offsetX = deltaX * sensitivity;
         float offsetY = deltaY * sensitivity;
 
-        // Update camera direction
-        cam.rotate(glm::radians(offsetY), glm::radians(offsetX));
+        // Correct: yaw is horizontal (X movement), pitch is vertical (Y movement)
+        cam.rotate(glm::radians(offsetX), glm::radians(offsetY));
 
         // Keyboard Input
         glm::vec3 movement(0.0f);
+        float movementSpeed = 0.00125f;
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            movement += cam.direction; // Move forward
+            movement += deltaTime * movementSpeed * cam.direction; // Move forward
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            movement -= cam.direction; // Move backward
+            movement -= deltaTime * movementSpeed * cam.direction; // Move backward
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            movement -= cam.right; // Move left
+            movement -= deltaTime * movementSpeed * cam.right; // Mo ve left
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            movement += cam.right; // Move right
+            movement += deltaTime * movementSpeed * cam.right; // Move right
         }
 
         if (glm::length(movement) > 0.0f) {
-            cam.move(glm::normalize(movement) * deltaTime);
+            cam.move(glm::normalize(movement));
         }
     } 
     else {
