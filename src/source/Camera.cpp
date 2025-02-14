@@ -1,4 +1,4 @@
-#include "headers/Camera.h"
+#include "../headers/Camera.h"
 #include "glm/ext/matrix_clip_space.hpp"
 
 Camera::Camera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up, 

@@ -11,6 +11,7 @@ std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture
     glm::vec3 h = glm::cross(ray.direction, e2);
     float a = glm::dot(e1, h);
 
+    //parallel
     if (std::abs(a) < 1e-8f) return std::nullopt;
 
     float f = 1.0f / a;
@@ -27,7 +28,7 @@ std::optional<HitResult> Triangle::intersect(Ray& ray, const std::vector<Texture
     if (t > 1e-8f && t < closestHit.t) {
         closestHit.t = t;
         closestHit.point = ray.origin + t * ray.direction;
-        closestHit.normal = normal;
+        closestHit.normal = glm::normalize(normal);
 
         // Barycentric interpolation for UV coordinates
         float w = 1.0f - u - v;

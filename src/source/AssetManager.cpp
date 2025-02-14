@@ -1,4 +1,4 @@
-#include "headers/AssetManager.h"
+#include "../headers/AssetManager.h"
 #include <iostream>
 
 tinygltf::Model AssetManager::loadModel(const std::string& filePath) 

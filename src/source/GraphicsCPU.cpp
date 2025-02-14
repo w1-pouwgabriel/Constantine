@@ -11,9 +11,9 @@
 #include <string>
 #include <chrono>
 
-#include "headers/GraphicsCPU.h"
-#include "headers/TriangleMesh.h"
-#include "headers/primitive/Plane.h"
+#include "../headers/GraphicsCPU.h"
+#include "../headers/TriangleMesh.h"
+#include "../headers/primitive/Plane.h"
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
@@ -74,7 +74,9 @@ void GraphicsCPU::renderLoop()
 {
     // Lights and plane can be precomputed once
     Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
-    addLight(PointLight(glm::vec3(3, 5, 6), glm::vec3(0, 0, 1), 1.0f));
+
+    // Add lights to the scene
+    addLight(PointLight(glm::vec3(3, 7, 6), glm::vec3(0, 0, 1), 1.5f));
     addLight(PointLight(glm::vec3(-3, 5, -5), glm::vec3(1, 0, 0), 1.0f)); // Red light
 
     while (!glfwWindowShouldClose(window)) 
@@ -99,7 +101,6 @@ void GraphicsCPU::renderLoop()
                 float v = static_cast<float>(y) / height;
                 Ray ray = cam.generateRay(u, v);
 
-
                 glm::vec3 finalColor(0.0f); // Default to black
                 float closestT = std::numeric_limits<float>::max();
 
@@ -109,13 +110,8 @@ void GraphicsCPU::renderLoop()
                         auto hit = triangle.intersect(ray, mesh.getTextures());
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
-                            double extra;
-                            double extra2;
-
-                            float x = modf(hit->uv.x, &extra);
-                            float y = modf(hit->uv.y, &extra2);
-                            
-                            finalColor = glm::vec3(x,y,0);
+                            finalColor = hit->color;
+                            //finalColor = hit->normal * 0.5f + 0.5f; // Convert normal to color
                         }
                     }
 
@@ -123,7 +119,6 @@ void GraphicsCPU::renderLoop()
                     auto hit = plane.intersect(ray);
                     if (hit && hit->t < closestT) {
                         closestT = hit->t;
-
                         finalColor = hit->color * 0.5f;
                     }
                 }
