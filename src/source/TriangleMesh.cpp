@@ -1,4 +1,5 @@
 #include "../headers/TriangleMesh.h"
+
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,10 +19,13 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
     triangles.clear();
 
     for (const auto& mesh : model.meshes) {
+        std::cout << mesh.name << std::endl;
         for (const auto& primitive : mesh.primitives) {
             if (primitive.mode == TINYGLTF_MODE_TRIANGLES) {
                 
                 processPrimitive(model, primitive);
+
+                primitive.material
             }
         }
     }

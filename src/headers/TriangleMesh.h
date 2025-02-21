@@ -5,6 +5,7 @@
 #include "./primitive/Triangle.h"
 #include "./Texture.h"
 #include "glm/fwd.hpp"
+
 #include "tiny_gltf.h"
 
 class Ray;
@@ -20,7 +21,6 @@ public:
 private:
     std::vector<Triangle> triangles;
     std::vector<Texture> textures;
-    glm::mat4 transformMatrix;
 
     void processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
     void loadGLTF(const tinygltf::Model& model);

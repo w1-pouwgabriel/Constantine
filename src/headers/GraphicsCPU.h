@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_GL_H
-#define GRAPHICS_GL_H
+#ifndef GRAPHICS_CPU_H
+#define GRAPHICS_CPU_H
 
 #include "Graphics.h"
 #include "Camera.h"
@@ -47,5 +47,5 @@ public:
     bool rightMousePressed = false;
 };
 
-#endif // GRAPHICS_GL_H
+#endif // GRAPHICS_CPU_H
 
