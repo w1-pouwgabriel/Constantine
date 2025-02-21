@@ -3,14 +3,15 @@
 
 #include "glm/ext/vector_float3.hpp"
 #include <optional>
-#include "HitResult.h"
 
+struct HitResult;
 class Ray;
 
 class Circle
 {
 public:
-    Circle(glm::vec3 position, float radius);
+    Circle() : position(glm::vec3(0)), radius(0.125f) {};
+    Circle(const glm::vec3& position, float radius);
     std::optional<HitResult> intersect(Ray& ray);
 
 private:

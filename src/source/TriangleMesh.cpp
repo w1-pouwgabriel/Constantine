@@ -16,9 +16,7 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
         std::cout << mesh.name << std::endl;
         for (const auto& primitive : mesh.primitives) {
             if (primitive.mode == TINYGLTF_MODE_TRIANGLES) {
-                
                 processPrimitive(model, primitive);
-
             }
         }
     }
@@ -80,11 +78,10 @@ void TriangleMesh::processPrimitive(const tinygltf::Model& model, const tinygltf
         glm::vec3 v2 = glm::vec3(positionData[3 * indexData[i + 2]], positionData[3 * indexData[i + 2] + 1], positionData[3 * indexData[i + 2] + 2]);
 
         glm::vec3 normal;
-
         if (hasNormals) {
             const float* normalData = reinterpret_cast<const float*>(
                 normalBuffer->data.data() + normalView->byteOffset + normalAccessor->byteOffset);
-            normal = glm::vec3(normalData[3 * indexData[i]], normalData[3 * indexData[i] + 1], normalData[3 * indexData[i] + 2]);
+                normal = glm::vec3(normalData[3 * indexData[i]], normalData[3 * indexData[i] + 1], normalData[3 * indexData[i] + 2]);
         } else {
             normal = computeNormal(v0, v1, v2);
         }

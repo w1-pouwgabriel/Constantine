@@ -1,6 +1,6 @@
 #include "headers/AssetManager.h"
-#include "headers/GraphicsCPU.h"
 #include "headers/TriangleMesh.h"
+#include "headers/GraphicsCPU.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -26,6 +26,5 @@ int main()
     graphics.shutdown();
 
     system("pause");
-        
     return 0;
 }

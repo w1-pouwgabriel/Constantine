@@ -13,10 +13,10 @@
 #include <filesystem> // C++17 feature
 
 #include "../headers/GraphicsCPU.h"
-#include "../headers/TriangleMesh.h"
 #include "../headers/primitive/Plane.h"
+#include <random>
 
-void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
+void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
     static float lastX = xpos;
     static float lastY = ypos;
@@ -71,7 +71,7 @@ bool GraphicsCPU::initialize(int width, int height, const std::string& title)
     return true;
 }
 
-void GraphicsCPU::renderLoop() 
+void GraphicsCPU::renderLoop()
 {
     // Lights and plane can be precomputed once
     Plane plane(glm::vec3(0, -5, 0), glm::vec3(0, 1, 0));
@@ -79,6 +79,24 @@ void GraphicsCPU::renderLoop()
     // Add lights to the scene
     addLight(PointLight(glm::vec3(3, 7, 6), glm::vec3(0, 0, 1), 1.5f));
     addLight(PointLight(glm::vec3(-3, 5, -5), glm::vec3(1, 0, 0), 1.0f)); // Red light
+
+    // Set up a random number generator
+    std::random_device rd;
+    //https://cplusplus.com/reference/random/mt19937/
+    // Seeded Mersenne Twister generator
+    std::mt19937 gen(rd()); 
+
+    // Define uniform distributions for x, y, and z
+    std::uniform_real_distribution<float> distX(-15.0f, 15.0f);
+    std::uniform_real_distribution<float> distY(0.0f, 6.0f);
+    std::uniform_real_distribution<float> distZ(-15.0f, 0.0f);
+
+    int circleCount = 2;
+    circles.resize(circleCount);
+    for(int i = 0; i < circles.size(); i++)
+    {
+        circles[i] = Circle(glm::vec3(distX(gen), distY(gen), distZ(gen)), 0.5f);
+    }
 
     while (!glfwWindowShouldClose(window)) 
     {
@@ -104,24 +122,34 @@ void GraphicsCPU::renderLoop()
 
                 glm::vec3 finalColor(0.0f); // Default to black
                 float closestT = std::numeric_limits<float>::max();
-
+                
+                //Go over all meshes
                 for (TriangleMesh& mesh : meshes) {
                     for (Triangle& triangle : mesh.getTriangles()) {
                         // Perform ray-triangle intersection
                         auto hit = triangle.intersect(ray, mesh.getTextures());
                         if (hit && hit->t < closestT) {
                             closestT = hit->t;
-                            finalColor = hit->color;
-                            //finalColor = hit->normal * 0.5f + 0.5f; // Convert normal to color
+                            finalColor = hit->color * 0.5f; // Convert normal to color
                         }
                     }
+                }
 
+                for (size_t i = 0; i < circleCount; i++)
+                {
                     //Do the plane intersection separately
-                    auto hit = plane.intersect(ray);
-                    if (hit && hit->t < closestT) {
-                        closestT = hit->t;
-                        finalColor = hit->color * 0.5f;
+                    auto cirhit = circles.at(i).intersect(ray);
+                    if (cirhit && cirhit->t < closestT) {
+                        closestT = cirhit->t;
+                        finalColor = cirhit->normal * 0.5f;
                     }
+                }
+
+                //Do the plane intersection separately
+                auto plahit = plane.intersect(ray);
+                if (plahit && plahit->t < closestT) {
+                    closestT = plahit->t;
+                    finalColor = plahit->color * 0.5f;
                 }
 
                 // Set the pixel color in the framebuffer
@@ -136,7 +164,7 @@ void GraphicsCPU::renderLoop()
     }
 };
 
-void GraphicsCPU::setPixel(int x, int y, float r, float g, float b) 
+void GraphicsCPU::setPixel(int x, int y, float r, float g, float b)
 { 
     // Set the pixel color
     framebuffer[(y * width + x) * 3 + 0] += r;
@@ -144,7 +172,7 @@ void GraphicsCPU::setPixel(int x, int y, float r, float g, float b)
     framebuffer[(y * width + x) * 3 + 2] += b;
 };
 
-void GraphicsCPU::handleInput(float deltaTime) 
+void GraphicsCPU::handleInput(float deltaTime)
 {
     rightMousePressed = false;
 
@@ -233,12 +261,7 @@ void GraphicsCPU::handleInput(float deltaTime)
     }
 };
 
-void GraphicsCPU::addMesh(TriangleMesh& mesh) 
-{
-    meshes.push_back(mesh);
-}
-
-bool GraphicsCPU::saveFrame(const std::string &filename) 
+bool GraphicsCPU::saveFrame(const std::string &filename)
 {
     // Ensure the directory exists
     std::filesystem::path filePath(filename);
@@ -265,7 +288,7 @@ bool GraphicsCPU::saveFrame(const std::string &filename)
             outputBuffer[dstIndex + 2] = static_cast<unsigned char>(glm::clamp(framebuffer[srcIndex + 2], 0.0f, 1.0f) * 255.0f);
         }
     }
-    
+
     // Write the buffer to a PNG file
     if (stbi_write_png(filename.c_str(), width, height, 3, outputBuffer.data(), width * 3)) {
         std::cout << "Frame saved successfully to: " << filename << std::endl;
@@ -276,8 +299,9 @@ bool GraphicsCPU::saveFrame(const std::string &filename)
     }
 };
 
-void GraphicsCPU::shutdown() 
-{ 
-    // Terminate GLFW
+void GraphicsCPU::shutdown()
+{
+    circles.clear();
+    
     glfwTerminate();
 };

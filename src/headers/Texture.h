@@ -16,8 +16,10 @@ public:
     glm::vec3 sample(float u, float v) const 
     {
         // Clamp the coordinates to avoid out of bounds access
-        u = glm::clamp(u, 0.0f, 1.0f);
-        v = glm::clamp(v, 0.0f, 1.0f);
+        //u = glm::clamp(u, 0.0f, 1.0f);
+        //v = glm::clamp(v, 0.0f, 1.0f);
+        u = u - std::floor(u);  // Wrap around horizontally
+        v = v - std::floor(v);  // Wrap around vertically
 
         // Convert UV to pixel coordinates
         int x = static_cast<int>(u * (width - 1));
@@ -36,7 +38,6 @@ public:
         // Default to white if texture format is not supported
         return glm::vec3(1.0f);
     }
-
     
     int width, height, components;
     std::vector<uint8_t> data;

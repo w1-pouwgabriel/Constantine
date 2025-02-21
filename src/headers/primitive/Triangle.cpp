@@ -1,6 +1,8 @@
 #include "Triangle.h"
+#include "HitResult.h"
 #include "../Texture.h"
 #include "../Ray.h"
+#include <iostream>
 
 std::optional<HitResult> Triangle::intersect(const Ray& ray, const std::vector<Texture>& textures) {
     HitResult closestHit;

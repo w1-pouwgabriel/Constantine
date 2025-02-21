@@ -1,9 +1,10 @@
 #include "Circle.h"
+#include "HitResult.h"
 #include "../Ray.h"
 
 #include <glm/glm.hpp> 
 
-Circle::Circle(glm::vec3 position, float radius)
+Circle::Circle(const glm::vec3& position, float radius)
     : position(position), radius(radius) {}
 
 std::optional<HitResult> Circle::intersect(Ray& ray) {
@@ -21,5 +22,6 @@ std::optional<HitResult> Circle::intersect(Ray& ray) {
             return HitResult{t, hitPoint, normal};
         }
     }
+
     return std::nullopt;
 }

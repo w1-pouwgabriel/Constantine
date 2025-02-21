@@ -4,10 +4,9 @@
 #include <glm/glm.hpp>
 #include <optional>
 
-#include "HitResult.h"
-
 class Ray;
 class Texture;
+struct HitResult;
 
 class Triangle 
 {

@@ -1,13 +1,13 @@
 #ifndef GRAPHICS_CPU_H
 #define GRAPHICS_CPU_H
 
-#include "Graphics.h"
-#include "Camera.h"
-#include "light/PointLight.h"
 #include <GLFW/glfw3.h>
 
-class Camera;
-class TriangleMesh;
+#include "Graphics.h"
+#include "Camera.h"
+#include "TriangleMesh.h"
+#include "primitive/Circle.h"
+#include "light/PointLight.h"
 
 class GraphicsCPU : public Graphics 
 {
@@ -31,9 +31,9 @@ public:
     // Clean up and shut down the graphics system
     virtual void shutdown() override;
 
-    void addMesh(TriangleMesh& mesh);
-
-    void addLight(const PointLight& light) { lights.push_back(light);}
+    void addCircle(Circle& circle) { circles.emplace_back(circle); };
+    void addMesh(TriangleMesh& mesh) { meshes.emplace_back(mesh); };
+    void addLight(const PointLight& light) { lights.emplace_back(light); };
 
     Camera cam;
 
@@ -41,6 +41,7 @@ public:
     GLFWwindow* window;
     std::vector<TriangleMesh> meshes;
     std::vector<PointLight> lights;
+    std::vector<Circle> circles;
 
     double lastMouseX, lastMouseY;
     bool captureInput = false;

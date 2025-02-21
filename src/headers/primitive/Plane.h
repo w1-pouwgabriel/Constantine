@@ -3,8 +3,7 @@
 
 #include "Triangle.h"
 #include "../Ray.h"
-
-struct HitResult;
+#include "HitResult.h"
 
 class Plane
 {
