@@ -10,6 +10,7 @@
 #include <glm/gtx/intersect.hpp> // If you want a library function for ray-triangle
 #include <string>
 #include <chrono>
+#include <filesystem> // C++17 feature
 
 #include "../headers/GraphicsCPU.h"
 #include "../headers/TriangleMesh.h"
@@ -239,13 +240,32 @@ void GraphicsCPU::addMesh(TriangleMesh& mesh)
 
 bool GraphicsCPU::saveFrame(const std::string &filename) 
 {
-    // Convert the framebuffer (float) to an 8-bit buffer for stb_image_write
-    std::vector<unsigned char> outputBuffer(width * height * 3);
-    for (int i = 0; i < width * height * 3; ++i) {
-        // Clamp and scale the float values (0.0 to 1.0) to 0-255 range
-        outputBuffer[i] = static_cast<unsigned char>(glm::clamp(framebuffer[i], 0.0f, 1.0f) * 255.0f);
+    // Ensure the directory exists
+    std::filesystem::path filePath(filename);
+    std::filesystem::path directory = filePath.parent_path();
+
+    if (!directory.empty() && !std::filesystem::exists(directory)) {
+        if (!std::filesystem::create_directories(directory)) {
+            std::cerr << "Failed to create directory: " << directory << std::endl;
+            return false;
+        }
     }
 
+    // STBI expects the image to start from bottom->up not up->bottom
+    // Convert framebuffer (float) to an 8-bit buffer while flipping the image vertically
+    std::vector<unsigned char> outputBuffer(width * height * 3);
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int srcIndex = (y * width + x) * 3;            // Current pixel in the framebuffer
+            int dstIndex = ((height - 1 - y) * width + x) * 3; // Flipped pixel position
+
+            outputBuffer[dstIndex]     = static_cast<unsigned char>(glm::clamp(framebuffer[srcIndex], 0.0f, 1.0f) * 255.0f);
+            outputBuffer[dstIndex + 1] = static_cast<unsigned char>(glm::clamp(framebuffer[srcIndex + 1], 0.0f, 1.0f) * 255.0f);
+            outputBuffer[dstIndex + 2] = static_cast<unsigned char>(glm::clamp(framebuffer[srcIndex + 2], 0.0f, 1.0f) * 255.0f);
+        }
+    }
+    
     // Write the buffer to a PNG file
     if (stbi_write_png(filename.c_str(), width, height, 3, outputBuffer.data(), width * 3)) {
         std::cout << "Frame saved successfully to: " << filename << std::endl;
