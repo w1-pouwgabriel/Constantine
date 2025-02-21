@@ -12,8 +12,6 @@ public:
         return instance;
     }
 
-    //Some polymorphism here would be nice 
-    //  - Create some kind of Model class that all model types inherit from
     tinygltf::Model loadModel(const std::string& filePath);
 
 private:

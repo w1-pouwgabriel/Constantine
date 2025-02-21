@@ -2,21 +2,15 @@
 
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-TriangleMesh::TriangleMesh(const tinygltf::Model& model)
-: transformMatrix(glm::mat4(1))
-{
-    triangles.clear();
-    textures.clear();
-
-    loadGLTF(model);
-    loadTextures(model);
-}
+#include <iostream>
 
 // Function to load a GLTF model
 void TriangleMesh::loadGLTF(const tinygltf::Model& model)
 {
     triangles.clear();
+    textures.clear();
+
+    loadTextures(model);
 
     for (const auto& mesh : model.meshes) {
         std::cout << mesh.name << std::endl;
@@ -25,7 +19,6 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
                 
                 processPrimitive(model, primitive);
 
-                primitive.material
             }
         }
     }
@@ -33,8 +26,6 @@ void TriangleMesh::loadGLTF(const tinygltf::Model& model)
 
 void TriangleMesh::loadTextures(const tinygltf::Model& model) 
 {
-    textures.clear();
-    
     for (const auto& image : model.images) {
         textures.emplace_back(image.width, image.height, image.component, image.image);
     }

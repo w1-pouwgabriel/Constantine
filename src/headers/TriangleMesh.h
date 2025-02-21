@@ -13,7 +13,8 @@ class Ray;
 class TriangleMesh 
 {
 public:
-    TriangleMesh(const tinygltf::Model& model);
+    TriangleMesh() {};
+    void loadGLTF(const tinygltf::Model& model);
     
     std::vector<Triangle>& getTriangles() { return triangles; }
     std::vector<Texture>& getTextures() { return textures; }
@@ -22,9 +23,9 @@ private:
     std::vector<Triangle> triangles;
     std::vector<Texture> textures;
 
-    void processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
-    void loadGLTF(const tinygltf::Model& model);
     void loadTextures(const tinygltf::Model& model);
+    void processPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+
     glm::vec3 computeNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) const;
 };
 

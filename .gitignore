@@ -1,6 +1,9 @@
 # Ignore build directory (CMake's generated build files)
 build/
 
+# Ignore frames folder (Picture mode)
+frames/
+
 # Ignore object files, libraries, and executables
 *.o
 *.obj

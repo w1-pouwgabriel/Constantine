@@ -7,13 +7,11 @@
 
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
-
-    //Initialize the AssetManager
+    //Singelton
     AssetManager& assetManager = AssetManager::getInstance();
-    tinygltf::Model model = assetManager.loadModel("assets/Cube/Cube.gltf");
 
-    TriangleMesh cube = TriangleMesh(model);
+    TriangleMesh scene;
+    scene.loadGLTF(assetManager.loadModel("assets/Cube/Cube.gltf"));
 
     GraphicsCPU graphics;
     bool result = graphics.initialize(800, 600, "Ray Tracer");
@@ -22,7 +20,7 @@ int main()
     }
 
     //Load the mesh into the graphics system
-    graphics.addMesh(cube);
+    graphics.addMesh(scene);
 
     graphics.renderLoop();
     graphics.shutdown();
